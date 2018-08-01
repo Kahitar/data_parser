@@ -208,7 +208,7 @@ class Application(tk.Frame):
 
 			plt.subplot(212)
 			self.plot_U2()
-			#plt.show()
+
 		except Exception as e:
 			msg = messagebox.showinfo("Error", "Error: Bitte zuerst Daten einlesen!")
 			print(e)
@@ -286,10 +286,10 @@ class SimpleProgressBar(tk.Frame):
 		self.progressLabel.grid(column=1, row=0)
 
 	def update(self, count, total=None):
-		if total != 0:
+		if total != None:
 			self.progressbar['maximum'] = total
 		
-		self.progressbar.step(amount=count-self.progressbar['value'])
+		self.progressbar['value'] = count
 		self.progressbar.update_idletasks()
 
 		percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
