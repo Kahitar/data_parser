@@ -19,19 +19,18 @@ class Application(tk.Frame):
 		self.master.title("Application")
 
 		self.topFrame = tk.Frame(master=self, padx=5, pady=5)
-		self.topFrame.grid(column=0, row=0, rowspan=1)
+		self.topFrame.grid(column=0, row=5, rowspan=1)
 
 		self.optionsFrame = tk.Frame(master=self, borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
-		self.optionsFrame.grid(column=0, row=1, rowspan=5)
+		self.optionsFrame.grid(column=0, row=15, rowspan=1)
 		self.optionsFrame.grid_propagate(False)
 
 		self.calculationFrame = tk.Frame(master=self, borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
-		self.calculationFrame.grid(column=0, row=7, rowspan=5)
+		self.calculationFrame.grid(column=0, row=30, rowspan=1)
 		self.calculationFrame.grid_propagate(False)
 
-		self.statusFrame = tk.Frame(master=self, borderwidth=1, relief="sunken", width=500, height=250, padx=1, pady=1)
-		self.statusFrame.grid(column=0, row=12, rowspan=1, sticky='nsew')
-		self.statusFrame.grid_propagate(False)
+		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
+		self.statusFrame.grid(column=0, row=45, rowspan=1)
 
 		self.load_bar = SimpleProgressBar(self.statusFrame, )
 
@@ -89,8 +88,8 @@ class Application(tk.Frame):
 		self.table.set(6,1,"{0:.2f} h".format(self.t_poti_between/60/60))
 		self.table.set(7,0,"N Poti")
 		self.table.set(7,1,self.n_poti)
-
-		self.table.mainloop()
+		self.update_idletasks()
+		#self.table.mainloop()
 
 	def readVoltages(self):
 		file_folder = "files/"
@@ -143,8 +142,6 @@ class Application(tk.Frame):
 		U1_volts_per_Bar = 10 / 400 # [V/bar]
 
 		# evaluate data
-		print("\n")
-		print("Evaluating data ...")
 		for i in range(len(self.U1)):
 
 			# write progress bar
@@ -285,7 +282,7 @@ class SimpleProgressBar(tk.Frame):
 		self.progressbar = ttk.Progressbar(master=parent, length=200, mode='determinate', maximum=total)
 		self.progressbar.grid(column=0, row=0)
 		
-		self.progressLabel = tk.Label(parent, text="0%")
+		self.progressLabel = tk.Label(parent, text="0%", width=10)
 		self.progressLabel.grid(column=1, row=0)
 
 	def update(self, count, total=None):
