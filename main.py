@@ -29,7 +29,7 @@ class Application(tk.Frame):
 		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=35)
+		self.statusFrame.grid(column=0, row=10)
 
 		self.load_bar = SimpleProgressBar(self.statusFrame)
 
@@ -233,7 +233,7 @@ class Application(tk.Frame):
 			self.plot_U2()
 
 		except Exception as e:
-			msg = messagebox.showinfo("Error", "Error: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
 			print(e)
 
 	def plot_U2(self):
@@ -246,7 +246,7 @@ class Application(tk.Frame):
 			plt.title("Gerät an/aus")
 			plt.show()
 		except Exception as e:
-			msg = messagebox.showinfo("Error", "Error: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
 			print(e)
 
 	def plot_U3(self):
@@ -305,7 +305,7 @@ class SimpleProgressBar(tk.Frame):
 		self.progressbar = ttk.Progressbar(master=parent, length=200, mode='determinate', maximum=total)
 		self.progressbar.grid(column=0, row=0)
 		
-		self.progressLabel = tk.Label(parent, text="0%", width=10)
+		self.progressLabel = tk.Label(parent, text="0%", width=5)
 		self.progressLabel.grid(column=1, row=0)
 
 	def update(self, count, total=None):
@@ -318,20 +318,6 @@ class SimpleProgressBar(tk.Frame):
 		percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
     	
 		self.progressLabel['text'] = str(percents) + '%'
-
-# cmd progress bar
-def progress(count, total, suffix=''):
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', suffix))
-    sys.stdout.flush()
-
-    if count == total:
-    	print("\n")
 
 # length of a file
 def file_len(fname):
