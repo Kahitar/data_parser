@@ -15,45 +15,48 @@ class Application(tk.Frame):
 		super().__init__(master)
 		self.grid()
 		self.master.minsize(500,500)
-		self.master.geometry("1000x700")
+		#self.master.geometry("1000x700")
 		self.master.title("Application")
 
-		self.topFrame = tk.Frame(master=self, padx=5, pady=5)
-		self.topFrame.grid(column=0, row=5, rowspan=1)
+		self.menuFrame = tk.Frame(master=self, padx=5, pady=5)
+		self.menuFrame.grid(column=0, row=5)
 
-		self.optionsFrame = tk.Frame(master=self, borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
-		self.optionsFrame.grid(column=0, row=15, rowspan=1)
-		self.optionsFrame.grid_propagate(False)
+		self.dataFrame = tk.LabelFrame(master=self, text="Fetching data", borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
+		self.dataFrame.grid(column=0, row=15)
+		self.dataFrame.grid_propagate(False)
 
-		self.calculationFrame = tk.Frame(master=self, borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
-		self.calculationFrame.grid(column=0, row=30, rowspan=1)
-		self.calculationFrame.grid_propagate(False)
+		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramms", borderwidth=1, relief="sunken", padx=5, pady=15)
+		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=45, rowspan=1)
+		self.statusFrame.grid(column=0, row=35)
 
-		self.load_bar = SimpleProgressBar(self.statusFrame, )
+		self.load_bar = SimpleProgressBar(self.statusFrame)
 
-		self.create_buttons()
+		self.createGui()
 
-	def create_buttons(self):
-		self.read_file = tk.Button(self.topFrame, text="Daten einlesen", command=self.readVoltages)
-		self.read_file.grid(row=0,column=1)
+	def createGui(self):
+		self.read_file = tk.Button(self.dataFrame, text="Daten einlesen", command=self.readVoltages)
+		self.read_file.grid(row=5, column=5, sticky="ew")
 
-		self.U2_plot = tk.Button(self.topFrame, text="Zustand über Zeit", command=self.plot_U2)
-		self.U2_plot.grid(row=0,column=2)
+		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
+		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
 
-		self.U3_plot = tk.Button(self.topFrame, text="Poti über Zeit", command=self.plot_U3)
-		self.U3_plot.grid(row=0,column=3)
+		self.table = SimpleTable(self.dataFrame, 8, 2)
+		self.table.grid(row=6, column=10, rowspan=9, padx=10)
+		self.updateTimeTable()
+
+		self.U2_plot = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
+		self.U2_plot.grid(row=0, column=2)
+
+		self.U3_plot = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
+		self.U3_plot.grid(row=0, column=3)
 		
-		self.U1_plot = tk.Button(self.topFrame, text="Druck über Zeit", command=self.plot_U1)
-		self.U1_plot.grid(row=0,column=4)
+		self.U1_plot = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
+		self.U1_plot.grid(row=0, column=4)
 
-		self.ZeitenButton = tk.Button(self.topFrame, text="Laufzeiten", command=self.showTimes)
-		self.ZeitenButton.grid(row=0,column=5)
-
-		self.quit = tk.Button(self.topFrame, text="QUIT", fg="red", command=self.master.destroy)
-		self.quit.grid(row=0,column=0, padx=10)
+		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
+		self.quit.grid(row=0, column=0, padx=10)
 
 	def showTimes(self):
 		try:
@@ -65,7 +68,7 @@ class Application(tk.Frame):
 			try:
 				self.updateTimeTable()
 			except Exception as e:	
-				self.table = SimpleTable(self.optionsFrame, 8, 2)
+				self.table = SimpleTable(self.dataFrame, 8, 2)
 				self.table.grid()
 				self.updateTimeTable()
 				print(e)
@@ -75,21 +78,41 @@ class Application(tk.Frame):
 		self.table.set(0,1,"Wert")
 
 		self.table.set(1,0,"Gerät an")
-		self.table.set(1,1,"{0:.2f} h".format(self.t_on/60/60))
+		try:
+			self.table.set(1,1,"{0:.2f} h".format(self.t_on/60/60))
+		except:
+			self.table.set(1,1,"{0:.2f} h".format(0))
 		self.table.set(2,0,"p > 240bar")
-		self.table.set(2,1,"{0:.2f} h".format(self.t_240bar/60/60))
+		try:
+			self.table.set(2,1,"{0:.2f} h".format(self.t_240bar/60/60))
+		except:
+			self.table.set(2,1,"{0:.2f} h".format(0))
 		self.table.set(3,0,"Schwemm")
-		self.table.set(3,1,"{0:.2f} h".format(self.t_schwemm/60/60))
+		try:
+			self.table.set(3,1,"{0:.2f} h".format(self.t_schwemm/60/60))
+		except:
+			self.table.set(3,1,"{0:.2f} h".format(0))
 		self.table.set(4,0,"Poti 100V")
-		self.table.set(4,1,"{0:.2f} h".format(self.t_poti_lowest/60/60))
+		try:
+			self.table.set(4,1,"{0:.2f} h".format(self.t_poti_lowest/60/60))
+		except:
+			self.table.set(4,1,"{0:.2f} h".format(0))
 		self.table.set(5,0,"Poti 250V")
-		self.table.set(5,1,"{0:.2f} h".format(self.t_poti_highest/60/60))
+		try:
+			self.table.set(5,1,"{0:.2f} h".format(self.t_poti_highest/60/60))
+		except:
+			self.table.set(5,1,"{0:.2f} h".format(0))
 		self.table.set(6,0,"Poti mitte")
-		self.table.set(6,1,"{0:.2f} h".format(self.t_poti_between/60/60))
+		try:
+			self.table.set(6,1,"{0:.2f} h".format(self.t_poti_between/60/60))
+		except:
+			self.table.set(6,1,"{0:.2f} h".format(0))
 		self.table.set(7,0,"N Poti")
-		self.table.set(7,1,self.n_poti)
+		try:
+			self.table.set(7,1,self.n_poti)
+		except:
+			self.table.set(7,1,0)
 		self.update_idletasks()
-		#self.table.mainloop()
 
 	def readVoltages(self):
 		file_folder = "files/"
