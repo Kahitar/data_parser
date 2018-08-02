@@ -15,21 +15,20 @@ class Application(tk.Frame):
 		super().__init__(master)
 		self.grid()
 		self.master.minsize(500,500)
-		#self.master.geometry("1000x700")
-		self.master.title("Application")
+		self.master.title("Parser Data Logger")
 
 		self.menuFrame = tk.Frame(master=self, padx=5, pady=5)
-		self.menuFrame.grid(column=0, row=5)
-
-		self.dataFrame = tk.LabelFrame(master=self, text="Fetching data", borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
-		self.dataFrame.grid(column=0, row=15)
-		self.dataFrame.grid_propagate(False)
-
-		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramms", borderwidth=1, relief="sunken", padx=5, pady=15)
-		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
+		self.menuFrame.grid(column=0, row=35)
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=10)
+
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
+		self.dataFrame.grid(column=0, row=15)
+		self.dataFrame.grid_propagate(False)
+
+		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
+		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
 		self.load_bar = SimpleProgressBar(self.statusFrame)
 
