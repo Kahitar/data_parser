@@ -58,12 +58,14 @@ class Application(tk.Frame):
 		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
 		self.quit.grid(row=0, column=0, padx=10)
 
-	def showTimes(self):
+	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über button.
+	def showTimes(self): 
 		try:
 			self.calculateTimes()
-		except Exception as e:
+		except AttributeError:
 			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
-			raise e
+		except Exception as e:
+			print(e)
 		else:
 			try:
 				self.updateTimeTable()
@@ -232,8 +234,9 @@ class Application(tk.Frame):
 			plt.subplot(212)
 			self.plot_U2()
 
-		except Exception as e:
+		except AttributeError:
 			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+		except Exception as e:
 			print(e)
 
 	def plot_U2(self):
@@ -245,8 +248,9 @@ class Application(tk.Frame):
 			plt.ylabel("Ein/Aus [-]")
 			plt.title("Gerät an/aus")
 			plt.show()
-		except Exception as e:
+		except AttributeError:
 			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+		except Exception as e:
 			print(e)
 
 	def plot_U3(self):
@@ -269,8 +273,9 @@ class Application(tk.Frame):
 			plt.title("Gerät an/aus")
 			
 			plt.show()
+		except AttributeError:
+			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
 		except Exception as e:
-			msg = messagebox.showinfo("Error", "Error: Bitte zuerst Daten einlesen!")
 			print(e)
 
 class SimpleTable(tk.Frame):
