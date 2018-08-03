@@ -180,9 +180,13 @@ class Application(tk.Frame):
 			self.table.set(6,1,"{0:} h".format('----'))
 		self.table.set(7,0,"N Poti")
 		try:
-			self.table.set(7,1,self.n_poti)
+			if self.n_poti == None:
+				self.table.set(7,1,'----')
+			else:
+				self.table.set(7,1,self.n_poti)
 		except:
 			self.table.set(7,1,'----')
+
 		self.update_idletasks()
 
 	def parseLoggerFile(self):
@@ -220,11 +224,6 @@ class Application(tk.Frame):
 		i = 0
 		for line in file_obj:
 
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.999:
-				self.load_bar.update(i, num_lines)
-			i += 1
-
 			try:
 				new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
 			except ValueError:
@@ -236,6 +235,13 @@ class Application(tk.Frame):
 			self.U1.append(float(new_U1.replace(",", ".")))
 			self.U2.append(float(new_U2.replace(",", ".")))
 			self.U3.append(float(new_U3.replace(",", ".")))
+
+			# write progress bar
+			if i / num_lines * 1000 % 1 >= 0.9999:
+				self.load_bar.update(i, num_lines)
+			if i == num_lines:
+				self.load_bar.update(num_lines, num_lines)
+			i += 1
 
 		self.currReadFile['text'] = self.findFilenameSubstr(file)
 
@@ -275,10 +281,6 @@ class Application(tk.Frame):
 		# evaluate data
 		for i in range(len(self.U1)):
 
-			# write progress bar
-			if i / len(self.U1) * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, len(self.U1))
-
 			turnedOn = False
 			# count time device on
 			if self.U2[i] > 20:
@@ -315,6 +317,12 @@ class Application(tk.Frame):
 				elif potiSwitching:
 					poti_schaltungen += 1
 					potiSwitching = False
+
+			# write progress bar
+			if i / len(self.U1) * 1000 % 1 >= 0.999:
+				self.load_bar.update(i, len(self.U1))
+			if i == len(self.U1):
+				self.load_bar.update(len(self.U1), len(self.U1))
 		
 		self.t_ges = valid_lines
 		self.t_on = len(time_on)
@@ -403,11 +411,6 @@ class Application(tk.Frame):
 		print("Parsing file {}...".format(file))
 		for line in file_obj:
 
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.999:
-				self.load_bar.update(i, num_lines)
-			i += 1
-
 			line = line.rstrip("\n")
 
 			if line[0] == ";":
@@ -437,6 +440,13 @@ class Application(tk.Frame):
 			U1.append(float(new_U1.replace(",", ".")))
 			U2.append(float(new_U2.replace(",", ".")))
 			U3.append(float(new_U3.replace(",", ".")))
+
+			# write progress bar
+			if i / num_lines * 1000 % 1 >= 0.999:
+				self.load_bar.update(i, num_lines)
+			if i == num_lines:
+				self.load_bar.update(num_lines, num_lines)
+			i += 1
 
 		print("\n")
 		outFile = outFile
@@ -486,12 +496,11 @@ class SimpleProgressBar(tk.Frame):
 		if total != None:
 			self.progressbar['maximum'] = total
 		
-		self.progressbar['value'] = count
-		self.progressbar.update_idletasks()
-
 		percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
     	
+		self.progressbar['value'] = count
 		self.progressLabel['text'] = str(percents) + '%'
+		self.progressbar.update_idletasks()
 
 # length of a file
 def file_len(fname):
@@ -507,8 +516,5 @@ def plot_voltages(voltages, indices):
 
 	plt.plot(indices,voltages_to_plot)
 	plt.show()
-
-
-#if __name__ == "__main__": read_datalogger("Gerät1_nach_Feldtest.txt", "gerät1_voltages_after_test_PYOUTPUT.txt")
 
 if __name__ == '__main__': main()
