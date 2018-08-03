@@ -2,7 +2,6 @@
 import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import sys
 
 def main():
 	root = tk.Tk()
@@ -22,7 +21,7 @@ class Application(tk.Frame):
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=10)
 
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=250, padx=5, pady=5)
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
 		self.dataFrame.grid(column=0, row=15)
 		self.dataFrame.grid_propagate(False)
 
@@ -65,9 +64,38 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
-		# TODO: Do I want to reset all the loaded data and the table after choosing a new file?
+	def loadLoggerFile(self):
+		# open the file dialog
+		self.loggerFile = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
+
+		# check if a file was read in (otherwise return)
+		if self.loggerFile == '':
+			return
+
+		# find the substring indicating the filename without the path
+		label = self.findFilenameSubstr(self.loggerFile)
+
+		# set the file Label showing the selected file with the previously found substring
+		try:
+			self.openLoggerFileLabel['text'] = label
+		except UnboundLocalError:
+			raise e
+		except Exception as e:
+			raise e
 
 	def createGui(self):
+		self.openLoggerFileButton = tk.Button(self.dataFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
+		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
+
+		self.openLoggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
+
+		self.parseLoggerFileButton = tk.Button(self.dataFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
+		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
+
+		self.loggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
+
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
 		self.openFileButton.grid(row=3, column=5, sticky="ew")
 
@@ -157,6 +185,11 @@ class Application(tk.Frame):
 			self.table.set(7,1,'----')
 		self.update_idletasks()
 
+	def parseLoggerFile(self):
+		outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
+		self.read_datalogger(self.loggerFile, outFile)
+		self.loggerFileLabel['text'] = 'Parsed to: ' + self.findFilenameSubstr(outFile)
+
 	def readVoltages(self):
 
 		try:
@@ -205,6 +238,18 @@ class Application(tk.Frame):
 			self.U3.append(float(new_U3.replace(",", ".")))
 
 		self.currReadFile['text'] = self.findFilenameSubstr(file)
+
+		self.t_ges = None
+		self.t_on = None
+		self.t_240bar = None
+		self.t_poti_lowest = None
+		self.t_poti_highest = None
+		self.t_poti_between = None
+		self.t_schwemm = None
+		self.n_poti = None
+		self.p_OnAvg = None
+
+		self.updateTimeTable()
 
 	def calculateTimes(self):
 
@@ -339,6 +384,69 @@ class Application(tk.Frame):
 		except Exception as e:
 			print(e)
 
+	def read_datalogger(self, inFile, outFile):
+		
+		file = inFile
+
+		num_lines = file_len(file)
+
+		file_obj = open(file, "r")
+
+		valid_lines = 0
+
+		U1 = [] # pressure: 0-400bar (0-10V)
+		U2 = [] # <1V: on, >23V: off
+		U3 = [] # Schiebepoti: 100-250bar (0-10V)
+
+		i = 0
+		print("\n")
+		print("Parsing file {}...".format(file))
+		for line in file_obj:
+
+			# write progress bar
+			if i / num_lines * 1000 % 1 >= 0.999:
+				self.load_bar.update(i, num_lines)
+			i += 1
+
+			line = line.rstrip("\n")
+
+			if line[0] == ";":
+				continue
+
+			valid_lines += 1
+
+			tab_counter = 0
+			new_U1 = ""
+			new_U2 = ""
+			new_U3 = ""
+			for char in line:
+
+				if char == "	":
+					tab_counter += 1
+					continue
+
+				if tab_counter == 5:
+					new_U1 = new_U1 + char
+
+				if tab_counter == 6:
+					new_U2 = new_U2 + char
+
+				if tab_counter == 7:
+					new_U3 = new_U3 + char
+
+			U1.append(float(new_U1.replace(",", ".")))
+			U2.append(float(new_U2.replace(",", ".")))
+			U3.append(float(new_U3.replace(",", ".")))
+
+		print("\n")
+		outFile = outFile
+		outFile_obj = open(outFile, "w")
+
+		for i in range(len(U1)):
+			outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
+
+		outFile_obj.close()
+
 class SimpleTable(tk.Frame):
     def __init__(self, parent, rows=10, columns=2):
         # use black background so it "peeks through" to 
@@ -400,5 +508,7 @@ def plot_voltages(voltages, indices):
 	plt.plot(indices,voltages_to_plot)
 	plt.show()
 
+
+#if __name__ == "__main__": read_datalogger("Gerät1_nach_Feldtest.txt", "gerät1_voltages_after_test_PYOUTPUT.txt")
 
 if __name__ == '__main__': main()
