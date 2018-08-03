@@ -221,7 +221,7 @@ class Application(tk.Frame):
 		# read the voltages from the previously created pyoutput file
 		print("\n")
 		print("Parsing file {}...".format(file))
-		i = 0
+		i = 0 # for progress bar
 		for line in file_obj:
 
 			try:
@@ -237,11 +237,12 @@ class Application(tk.Frame):
 			self.U3.append(float(new_U3.replace(",", ".")))
 
 			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.9999:
+			if i / num_lines * 1000 % 1 >= 0.99:
 				self.load_bar.update(i, num_lines)
-			if i == num_lines:
-				self.load_bar.update(num_lines, num_lines)
 			i += 1
+
+		# loop finished, fill progress bar
+		self.load_bar.update(1, 1)
 
 		self.currReadFile['text'] = self.findFilenameSubstr(file)
 
@@ -319,11 +320,12 @@ class Application(tk.Frame):
 					potiSwitching = False
 
 			# write progress bar
-			if i / len(self.U1) * 1000 % 1 >= 0.999:
+			if i / len(self.U1) * 1000 % 1 >= 0.99:
 				self.load_bar.update(i, len(self.U1))
-			if i == len(self.U1):
-				self.load_bar.update(len(self.U1), len(self.U1))
 		
+		# loop finished, fill progress bar
+		self.load_bar.update(1, 1)
+
 		self.t_ges = valid_lines
 		self.t_on = len(time_on)
 		self.t_240bar = len(time_highest_pressure)
@@ -442,13 +444,13 @@ class Application(tk.Frame):
 			U3.append(float(new_U3.replace(",", ".")))
 
 			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.999:
+			if i / num_lines * 1000 % 1 >= 0.99:
 				self.load_bar.update(i, num_lines)
-			if i == num_lines:
-				self.load_bar.update(num_lines, num_lines)
 			i += 1
 
-		print("\n")
+		# loop finished, fill progress bar
+		self.load_bar.update(1, 1)
+
 		outFile = outFile
 		outFile_obj = open(outFile, "w")
 
