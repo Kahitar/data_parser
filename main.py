@@ -34,9 +34,40 @@ class Application(tk.Frame):
 
 		self.createGui()
 
+	def loadFile(self):
+		from tkinter import filedialog
+		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
+
+		if self.file == '':
+			return
+
+		counter = 0
+		for i in range(len(self.file)):
+			char = self.file[i]
+			if char == '/':
+				counter = 0
+			elif char == '.':
+				label = self.file[i-counter:i+4]
+				break
+			else:
+				counter += 1
+
+		try:
+			self.fileLabel['text'] = label
+		except UnboundLocalError:
+			return
+		except Exception as e:
+			raise e
+
 	def createGui(self):
-		self.read_file = tk.Button(self.dataFrame, text="Daten einlesen", command=self.readVoltages)
-		self.read_file.grid(row=5, column=5, sticky="ew")
+		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
+		self.openFileButton.grid(row=3, column=5, sticky="ew")
+
+		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.fileLabel.grid(row=3, column=10, sticky="ew")
+
+		self.readFileButton = tk.Button(self.dataFrame, text="Daten einlesen", command=self.readVoltages)
+		self.readFileButton.grid(row=5, column=5, sticky="ew")
 
 		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
@@ -45,14 +76,14 @@ class Application(tk.Frame):
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
 		self.updateTimeTable()
 
-		self.U2_plot = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
-		self.U2_plot.grid(row=0, column=2)
+		self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
+		self.U2_plotButton.grid(row=0, column=2)
 
-		self.U3_plot = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
-		self.U3_plot.grid(row=0, column=3)
+		self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
+		self.U3_plotButton.grid(row=0, column=3)
 		
-		self.U1_plot = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
-		self.U1_plot.grid(row=0, column=4)
+		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
+		self.U1_plotButton.grid(row=0, column=4)
 
 		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
 		self.quit.grid(row=0, column=0, padx=10)
@@ -116,8 +147,20 @@ class Application(tk.Frame):
 		self.update_idletasks()
 
 	def readVoltages(self):
-		file_folder = "files/"
-		file = file_folder + "gerät1_voltages_after_test_PYOUTPUT.txt"
+
+		try:
+			file = self.file
+
+			if file == '':
+				raise AttributeError
+		except AttributeError:
+			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst eine Datei öffnen.")
+			return
+		except FileNotFoundError:
+			msg = messagebox.showinfo("Error", "Fehler: Bitte eine korrekte Datei öffnen.")
+			return
+		except Exception as e:
+			raise e
 
 		num_lines = file_len(file)
 
@@ -138,7 +181,13 @@ class Application(tk.Frame):
 				self.load_bar.update(i, num_lines)
 			i += 1
 
-			new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
+			try:
+				new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
+			except ValueError:
+				msg = messagebox.showinfo("Error", "Fehler: Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
+				return
+			except Exception as e:
+				raise e
 
 			self.U1.append(float(new_U1.replace(",", ".")))
 			self.U2.append(float(new_U2.replace(",", ".")))
