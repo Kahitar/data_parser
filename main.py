@@ -113,37 +113,37 @@ class Application(tk.Frame):
 		try:
 			self.table.set(1,1,"{0:.2f} h".format(self.t_on/60/60))
 		except:
-			self.table.set(1,1,"{0:.2f} h".format(0))
+			self.table.set(1,1,"{0:} h".format('----'))
 		self.table.set(2,0,"p > 240bar")
 		try:
 			self.table.set(2,1,"{0:.2f} h".format(self.t_240bar/60/60))
 		except:
-			self.table.set(2,1,"{0:.2f} h".format(0))
+			self.table.set(2,1,"{0:} h".format('----'))
 		self.table.set(3,0,"Schwemm")
 		try:
 			self.table.set(3,1,"{0:.2f} h".format(self.t_schwemm/60/60))
 		except:
-			self.table.set(3,1,"{0:.2f} h".format(0))
+			self.table.set(3,1,"{0:} h".format('----'))
 		self.table.set(4,0,"Poti 100V")
 		try:
 			self.table.set(4,1,"{0:.2f} h".format(self.t_poti_lowest/60/60))
 		except:
-			self.table.set(4,1,"{0:.2f} h".format(0))
+			self.table.set(4,1,"{0:} h".format('----'))
 		self.table.set(5,0,"Poti 250V")
 		try:
 			self.table.set(5,1,"{0:.2f} h".format(self.t_poti_highest/60/60))
 		except:
-			self.table.set(5,1,"{0:.2f} h".format(0))
+			self.table.set(5,1,"{0:} h".format('----'))
 		self.table.set(6,0,"Poti mitte")
 		try:
 			self.table.set(6,1,"{0:.2f} h".format(self.t_poti_between/60/60))
 		except:
-			self.table.set(6,1,"{0:.2f} h".format(0))
+			self.table.set(6,1,"{0:} h".format('----'))
 		self.table.set(7,0,"N Poti")
 		try:
 			self.table.set(7,1,self.n_poti)
 		except:
-			self.table.set(7,1,0)
+			self.table.set(7,1,'----')
 		self.update_idletasks()
 
 	def readVoltages(self):
