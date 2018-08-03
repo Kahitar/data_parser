@@ -1,8 +1,7 @@
 #from tqdm import tqdm
 import matplotlib.pyplot as plt
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox, filedialog
 import sys
 
 def main():
@@ -34,40 +33,52 @@ class Application(tk.Frame):
 
 		self.createGui()
 
-	def loadFile(self):
-		from tkinter import filedialog
-		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
-
-		if self.file == '':
-			return
-
-		counter = 0
-		for i in range(len(self.file)):
-			char = self.file[i]
-			if char == '/':
+	def findFilenameSubstr(self, filename):
+		# find the substring indicating the filename without the path
+		counter = 0 # counter to count the chars of the new directory or file
+		for i in range(len(filename)):
+			char = filename[i]
+			if char == '/': # start counting the chars from zero
 				counter = 0
-			elif char == '.':
-				label = self.file[i-counter:i+4]
+			elif char == '.': # the substring for the filename was found.
+				return filename[i-counter:i+4] # add everything from the last '/' to the substring
 				break
 			else:
 				counter += 1
 
+	def loadFile(self):
+		# open the file dialog
+		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
+
+		# check if a file was read in (otherwise return)
+		if self.file == '':
+			return
+
+		# find the substring indicating the filename without the path
+		label = self.findFilenameSubstr(self.file)
+
+		# set the file Label showing the selected file with the previously found substring
 		try:
 			self.fileLabel['text'] = label
 		except UnboundLocalError:
-			return
+			raise e
 		except Exception as e:
 			raise e
+
+		# TODO: Do I want to reset all the loaded data and the table after choosing a new file?
 
 	def createGui(self):
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
 		self.openFileButton.grid(row=3, column=5, sticky="ew")
 
 		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
-		self.fileLabel.grid(row=3, column=10, sticky="ew")
+		self.fileLabel.grid(row=3, column=10, sticky="w")
 
 		self.readFileButton = tk.Button(self.dataFrame, text="Daten einlesen", command=self.readVoltages)
 		self.readFileButton.grid(row=5, column=5, sticky="ew")
+
+		self.currReadFile = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.currReadFile.grid(row=5, column=10, sticky="w")
 
 		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
@@ -77,18 +88,18 @@ class Application(tk.Frame):
 		self.updateTimeTable()
 
 		self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
-		self.U2_plotButton.grid(row=0, column=2)
+		self.U2_plotButton.grid(row=0, column=2, padx=3)
 
 		self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
-		self.U3_plotButton.grid(row=0, column=3)
+		self.U3_plotButton.grid(row=0, column=3, padx=3)
 		
 		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
-		self.U1_plotButton.grid(row=0, column=4)
+		self.U1_plotButton.grid(row=0, column=4, padx=3)
 
 		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
 		self.quit.grid(row=0, column=0, padx=10)
 
-	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über button.
+	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
 	def showTimes(self): 
 		try:
 			self.calculateTimes()
@@ -192,6 +203,8 @@ class Application(tk.Frame):
 			self.U1.append(float(new_U1.replace(",", ".")))
 			self.U2.append(float(new_U2.replace(",", ".")))
 			self.U3.append(float(new_U3.replace(",", ".")))
+
+		self.currReadFile['text'] = self.findFilenameSubstr(file)
 
 	def calculateTimes(self):
 
