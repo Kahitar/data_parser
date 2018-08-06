@@ -15,13 +15,23 @@ class Application(tk.Frame):
 		self.master.minsize(500,500)
 		self.master.title("Parser Data Logger")
 
-		self.menuFrame = tk.Frame(master=self, padx=5, pady=5)
-		self.menuFrame.grid(column=0, row=35)
+		""" Menu bar """
+		self.menubar = tk.Menu(self)
+		self.master.config(menu=self.menubar)
 
+		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
+
+		""" Frames """
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=10)
+		self.statusFrame.grid(column=0, row=5)
 
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
+		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, relief="sunken", width=500, height=150, padx=5, pady=5)
+		self.parserFrame.grid(column=0, row=10)
+		self.parserFrame.grid_propagate(False)
+
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
 		self.dataFrame.grid(column=0, row=15)
 		self.dataFrame.grid_propagate(False)
 
@@ -47,7 +57,7 @@ class Application(tk.Frame):
 
 	def loadFile(self):
 		# open the file dialog
-		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),("all files","*.*")))
+		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),))
 
 		# check if a file was read in (otherwise return)
 		if self.file == '':
@@ -87,16 +97,16 @@ class Application(tk.Frame):
 			raise e
 
 	def createGui(self):
-		self.openLoggerFileButton = tk.Button(self.dataFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
+		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
 		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
 
-		self.openLoggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.openLoggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
 		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
 
-		self.parseLoggerFileButton = tk.Button(self.dataFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
+		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
 		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
 
-		self.loggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
 		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
 
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
@@ -121,15 +131,12 @@ class Application(tk.Frame):
 		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
 		self.U1_plotButton.grid(row=0, column=4, padx=3)
 
-		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
-		self.quit.grid(row=0, column=0, padx=10)
-
 	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
 	def showTimes(self): 
 		try:
 			self.calculateTimes()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Bitte zuerst Daten einlesen!")
 		except Exception as e:
 			print(e)
 		else:
@@ -187,9 +194,13 @@ class Application(tk.Frame):
 		self.update_idletasks()
 
 	def parseLoggerFile(self):
-		outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
-		self.read_datalogger(self.loggerFile, outFile)
-		self.loggerFileLabel['text'] = 'Parsed to: ' + self.findFilenameSubstr(outFile)
+
+		try:
+			outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
+			self.read_datalogger(self.loggerFile, outFile)
+			self.loggerFileLabel['text'] = self.findFilenameSubstr(outFile)
+		except:
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 
 	def readVoltages(self):
 
@@ -199,10 +210,10 @@ class Application(tk.Frame):
 			if file == '':
 				raise AttributeError
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst eine Datei öffnen.")
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen.")
 			return
 		except FileNotFoundError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte eine korrekte Datei öffnen.")
+			msg = messagebox.showinfo("Error", "Bitte eine korrekte Datei öffnen.")
 			return
 		except Exception as e:
 			raise e
@@ -216,15 +227,13 @@ class Application(tk.Frame):
 		self.U3 = [] # Schiebepoti: 100-250bar (0-10V)
 
 		# read the voltages from the previously created pyoutput file
-		print("\n")
-		print("Parsing file {}...".format(file))
 		i = 0 # for progress bar
 		for line in file_obj:
 
 			try:
 				new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
 			except ValueError:
-				msg = messagebox.showinfo("Error", "Fehler: Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
+				msg = messagebox.showinfo("Error", "Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
 				return
 			except Exception as e:
 				raise e
@@ -346,7 +355,7 @@ class Application(tk.Frame):
 			self.plot_U2()
 
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			print(e)
 
@@ -360,7 +369,7 @@ class Application(tk.Frame):
 			plt.title("Gerät an/aus")
 			plt.show()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			print(e)
 
@@ -385,7 +394,7 @@ class Application(tk.Frame):
 			
 			plt.show()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Fehler: Bitte zuerst Daten einlesen!")
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			print(e)
 
@@ -404,8 +413,6 @@ class Application(tk.Frame):
 		U3 = [] # Schiebepoti: 100-250bar (0-10V)
 
 		i = 0
-		print("\n")
-		print("Parsing file {}...".format(file))
 		for line in file_obj:
 
 			line = line.rstrip("\n")
