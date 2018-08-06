@@ -47,7 +47,7 @@ class Application(tk.Frame):
 
 	def loadFile(self):
 		# open the file dialog
-		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
+		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),("all files","*.*")))
 
 		# check if a file was read in (otherwise return)
 		if self.file == '':
@@ -63,6 +63,9 @@ class Application(tk.Frame):
 			raise e
 		except Exception as e:
 			raise e
+
+		# parse the file
+		self.readVoltages()
 
 	def loadLoggerFile(self):
 		# open the file dialog
@@ -101,12 +104,6 @@ class Application(tk.Frame):
 
 		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
 		self.fileLabel.grid(row=3, column=10, sticky="w")
-
-		self.readFileButton = tk.Button(self.dataFrame, text="Daten einlesen", command=self.readVoltages)
-		self.readFileButton.grid(row=5, column=5, sticky="ew")
-
-		self.currReadFile = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
-		self.currReadFile.grid(row=5, column=10, sticky="w")
 
 		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
@@ -243,8 +240,6 @@ class Application(tk.Frame):
 
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
-
-		self.currReadFile['text'] = self.findFilenameSubstr(file)
 
 		self.t_ges = None
 		self.t_on = None
