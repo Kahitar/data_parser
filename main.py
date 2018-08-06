@@ -8,41 +8,7 @@ def main():
 	app = Application(master=root)
 	app.mainloop()
 
-class Application(tk.Frame):
-	def __init__(self, master=None):
-		super().__init__(master)
-		self.grid()
-		self.master.minsize(500,500)
-		self.master.title("Parser Data Logger")
-
-		""" Menu bar """
-		self.menubar = tk.Menu(self)
-		self.master.config(menu=self.menubar)
-
-		self.filemenu = tk.Menu(self.menubar, tearoff=0)
-		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
-		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
-
-		""" Frames """
-		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=5)
-
-		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, relief="sunken", width=500, height=150, padx=5, pady=5)
-		self.parserFrame.grid(column=0, row=10)
-		self.parserFrame.grid_propagate(False)
-
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
-		self.dataFrame.grid(column=0, row=15)
-		self.dataFrame.grid_propagate(False)
-
-		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
-		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
-
-		self.load_bar = SimpleProgressBar(self.statusFrame)
-
-		self.createGui()
-
-	def findFilenameSubstr(self, filename):
+def findFilenameSubstr(filename):
 		# find the substring indicating the filename without the path
 		counter = 0 # counter to count the chars of the new directory or file
 		for i in range(len(filename)):
@@ -55,6 +21,179 @@ class Application(tk.Frame):
 			else:
 				counter += 1
 
+class Parser(tk.Frame):
+	def __init__(self, master=None):
+		super().__init__(master)
+
+		self.grid()
+		self.master.minsize(500, 500)
+		self.master.title("Parser data logger")
+
+		""" Menu bar """
+		self.menubar = tk.Menu(self)
+		self.master.config(menu=self.menubar)
+
+		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
+
+		""" Frames """
+		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, 
+										relief="sunken", width=500, height=150, padx=5, pady=5)
+		self.parserFrame.grid(column=0, row=10)
+		self.parserFrame.grid_propagate(False)
+
+		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
+		self.statusFrame.grid(column=0, row=5)
+
+		self.load_bar = SimpleProgressBar(self.statusFrame)
+		self.createGui()
+
+	def createGui(self):
+		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen",
+											command=self.loadLoggerFile)
+		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
+
+		self.openLoggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, 
+											width=40)
+		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
+
+		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen",
+												command=self.parseLoggerFile)
+		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
+
+		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
+		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
+
+	def loadLoggerFile(self):
+		# open the file dialog
+		self.loggerFile = filedialog.askopenfilename(initialdir="files", title="Select file",
+													 filetypes=(("txt files","*.txt"),("all files","*.*")))
+
+		# check if a file was read in (otherwise return)
+		if self.loggerFile == '':
+			return
+
+		# find the substring indicating the filename without the path
+		label = findFilenameSubstr(self.loggerFile)
+
+		# set the file Label showing the selected file with the previously found substring
+		try:
+			self.openLoggerFileLabel['text'] = label
+		except UnboundLocalError:
+			raise e
+		except Exception as e:
+			raise e
+
+	def parseLoggerFile(self):
+
+		try:
+			outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
+			self.read_datalogger(self.loggerFile, outFile)
+			self.loggerFileLabel['text'] = findFilenameSubstr(outFile)
+		except Exception as e:
+			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
+			print(e)
+
+	def read_datalogger(self, inFile, outFile):
+		
+		file = inFile
+
+		num_lines = file_len(file)
+
+		file_obj = open(file, "r")
+
+		valid_lines = 0
+
+		U1 = [] # pressure: 0-400bar (0-10V)
+		U2 = [] # <1V: on, >23V: off
+		U3 = [] # Schiebepoti: 100-250bar (0-10V)
+
+		i = 0
+		for line in file_obj:
+
+			line = line.rstrip("\n")
+
+			if line[0] == ";":
+				continue
+
+			valid_lines += 1
+
+			tab_counter = 0
+			new_U1 = ""
+			new_U2 = ""
+			new_U3 = ""
+			for char in line:
+
+				if char == "	":
+					tab_counter += 1
+					continue
+
+				if tab_counter == 5:
+					new_U1 = new_U1 + char
+
+				if tab_counter == 6:
+					new_U2 = new_U2 + char
+
+				if tab_counter == 7:
+					new_U3 = new_U3 + char
+
+			U1.append(float(new_U1.replace(",", ".")))
+			U2.append(float(new_U2.replace(",", ".")))
+			U3.append(float(new_U3.replace(",", ".")))
+
+			# write progress bar
+			if i / num_lines * 1000 % 1 >= 0.99:
+				self.load_bar.update(i, num_lines)
+			i += 1
+
+		# loop finished, fill progress bar
+		self.load_bar.update(1, 1)
+
+		outFile = outFile
+		outFile_obj = open(outFile, "w")
+
+		for i in range(len(U1)):
+			outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
+
+		outFile_obj.close()
+
+class Application(tk.Frame):
+	def __init__(self, master=None):
+		super().__init__(master)
+
+		self.grid()
+		self.master.minsize(500,500)
+		self.master.title("Data logger")
+
+		""" Menu bar """
+		self.menubar = tk.Menu(self)
+		self.master.config(menu=self.menubar)
+
+		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Parser öffnen", command=self.initParser)
+		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
+
+		""" Frames """
+		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
+		self.statusFrame.grid(column=0, row=5)
+
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
+		self.dataFrame.grid(column=0, row=15)
+		self.dataFrame.grid_propagate(False)
+
+		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
+		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
+
+		self.load_bar = SimpleProgressBar(self.statusFrame)
+
+		self.createGui()
+
+	def initParser(self):
+		self.parser = Parser(tk.Tk())
+		self.parser.mainloop()
+
 	def loadFile(self):
 		# open the file dialog
 		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),))
@@ -64,7 +203,7 @@ class Application(tk.Frame):
 			return
 
 		# find the substring indicating the filename without the path
-		label = self.findFilenameSubstr(self.file)
+		label = findFilenameSubstr(self.file)
 
 		# set the file Label showing the selected file with the previously found substring
 		try:
@@ -77,38 +216,7 @@ class Application(tk.Frame):
 		# parse the file
 		self.readVoltages()
 
-	def loadLoggerFile(self):
-		# open the file dialog
-		self.loggerFile = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*.txt"),("all files","*.*")))
-
-		# check if a file was read in (otherwise return)
-		if self.loggerFile == '':
-			return
-
-		# find the substring indicating the filename without the path
-		label = self.findFilenameSubstr(self.loggerFile)
-
-		# set the file Label showing the selected file with the previously found substring
-		try:
-			self.openLoggerFileLabel['text'] = label
-		except UnboundLocalError:
-			raise e
-		except Exception as e:
-			raise e
-
 	def createGui(self):
-		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
-		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
-
-		self.openLoggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
-		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
-
-		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
-		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
-
-		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
-		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
-
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
 		self.openFileButton.grid(row=3, column=5, sticky="ew")
 
@@ -192,15 +300,6 @@ class Application(tk.Frame):
 			self.table.set(7,1,'----')
 
 		self.update_idletasks()
-
-	def parseLoggerFile(self):
-
-		try:
-			outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
-			self.read_datalogger(self.loggerFile, outFile)
-			self.loggerFileLabel['text'] = self.findFilenameSubstr(outFile)
-		except:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 
 	def readVoltages(self):
 
@@ -398,68 +497,6 @@ class Application(tk.Frame):
 		except Exception as e:
 			print(e)
 
-	def read_datalogger(self, inFile, outFile):
-		
-		file = inFile
-
-		num_lines = file_len(file)
-
-		file_obj = open(file, "r")
-
-		valid_lines = 0
-
-		U1 = [] # pressure: 0-400bar (0-10V)
-		U2 = [] # <1V: on, >23V: off
-		U3 = [] # Schiebepoti: 100-250bar (0-10V)
-
-		i = 0
-		for line in file_obj:
-
-			line = line.rstrip("\n")
-
-			if line[0] == ";":
-				continue
-
-			valid_lines += 1
-
-			tab_counter = 0
-			new_U1 = ""
-			new_U2 = ""
-			new_U3 = ""
-			for char in line:
-
-				if char == "	":
-					tab_counter += 1
-					continue
-
-				if tab_counter == 5:
-					new_U1 = new_U1 + char
-
-				if tab_counter == 6:
-					new_U2 = new_U2 + char
-
-				if tab_counter == 7:
-					new_U3 = new_U3 + char
-
-			U1.append(float(new_U1.replace(",", ".")))
-			U2.append(float(new_U2.replace(",", ".")))
-			U3.append(float(new_U3.replace(",", ".")))
-
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, num_lines)
-			i += 1
-
-		# loop finished, fill progress bar
-		self.load_bar.update(1, 1)
-
-		outFile = outFile
-		outFile_obj = open(outFile, "w")
-
-		for i in range(len(U1)):
-			outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
-
-		outFile_obj.close()
 
 class SimpleTable(tk.Frame):
     def __init__(self, parent, rows=10, columns=2):
