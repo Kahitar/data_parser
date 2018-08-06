@@ -15,8 +15,12 @@ class Application(tk.Frame):
 		self.master.minsize(500,500)
 		self.master.title("Parser Data Logger")
 
-		self.menuFrame = tk.Frame(master=self, padx=5, pady=5)
-		self.menuFrame.grid(column=0, row=35)
+		self.menubar = tk.Menu(self)
+		self.master.config(menu=self.menubar)
+
+		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=10)
@@ -120,9 +124,6 @@ class Application(tk.Frame):
 		
 		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
 		self.U1_plotButton.grid(row=0, column=4, padx=3)
-
-		self.quit = tk.Button(self.menuFrame, text="QUIT", fg="red", command=self.master.destroy)
-		self.quit.grid(row=0, column=0, padx=10)
 
 	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
 	def showTimes(self): 
