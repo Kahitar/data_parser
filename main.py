@@ -15,6 +15,7 @@ class Application(tk.Frame):
 		self.master.minsize(500,500)
 		self.master.title("Parser Data Logger")
 
+		""" Menu bar """
 		self.menubar = tk.Menu(self)
 		self.master.config(menu=self.menubar)
 
@@ -22,10 +23,15 @@ class Application(tk.Frame):
 		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
 		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
 
+		""" Frames """
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=10)
+		self.statusFrame.grid(column=0, row=5)
 
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
+		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
+		self.parserFrame.grid(column=0, row=10)
+		self.parserFrame.grid_propagate(False)
+
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
 		self.dataFrame.grid(column=0, row=15)
 		self.dataFrame.grid_propagate(False)
 
@@ -91,16 +97,16 @@ class Application(tk.Frame):
 			raise e
 
 	def createGui(self):
-		self.openLoggerFileButton = tk.Button(self.dataFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
+		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen", command=self.loadLoggerFile)
 		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
 
-		self.openLoggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.openLoggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
 		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
 
-		self.parseLoggerFileButton = tk.Button(self.dataFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
+		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen", command=self.parseLoggerFile)
 		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
 
-		self.loggerFileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
 		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
 
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
@@ -190,7 +196,7 @@ class Application(tk.Frame):
 	def parseLoggerFile(self):
 		outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
 		self.read_datalogger(self.loggerFile, outFile)
-		self.loggerFileLabel['text'] = 'Parsed to: ' + self.findFilenameSubstr(outFile)
+		self.loggerFileLabel['text'] = self.findFilenameSubstr(outFile)
 
 	def readVoltages(self):
 
