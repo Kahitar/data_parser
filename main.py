@@ -2,6 +2,11 @@
 import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+import os
+
+FILES_LOCATION = os.getenv('APPDATA') + "\\data_logger"
+if not os.path.isdir(FILES_LOCATION):
+	os.mkdir(FILES_LOCATION)
 
 def main():
 	root = tk.Tk()
@@ -119,7 +124,7 @@ class Parser(tk.Frame):
 	def parseLoggerFile(self):
 
 		try:
-			outFile = self.loggerFile[:-4] + '_PYOUTPUT.txt'
+			outFile = FILES_LOCATION + "\\" + findFilenameSubstr(self.loggerFile[:-4] + '_PYOUTPUT.txt')
 			self.read_datalogger(self.loggerFile, outFile)
 			self.loggerFileLabel['text'] = findFilenameSubstr(outFile)
 		except Exception as e:
@@ -295,7 +300,7 @@ class Application(tk.Frame):
 
 	def loadFile(self):
 		# open the file dialog
-		self.file = filedialog.askopenfilename(initialdir="files", title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),))
+		self.file = filedialog.askopenfilename(initialdir=FILES_LOCATION, title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),))
 
 		# check if a file was read in (otherwise return)
 		if self.file == '':
