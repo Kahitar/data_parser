@@ -26,7 +26,7 @@ class Parser(tk.Frame):
 		super().__init__(master)
 
 		self.grid()
-		self.master.minsize(500, 500)
+		self.master.minsize(500, 300)
 		self.master.title("Parser data logger")
 
 		self.createGui()
@@ -42,15 +42,15 @@ class Parser(tk.Frame):
 
 		""" Frames """
 		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, 
-										relief="sunken", width=500, height=150, padx=5, pady=5)
+										relief="sunken", width=500, height=300, padx=5, pady=5)
 		self.parserFrame.grid(column=0, row=10)
 		self.parserFrame.grid_propagate(False)
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=5)
 
-		self.previewFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.previewFrame.grid(column=1, row=10)
+		self.previewFrame = tk.Frame(master=self.parserFrame, borderwidth=1, padx=5, pady=5)
+		self.previewFrame.grid(column=10, row=2)
 
 		""" Loading bar """
 		self.load_bar = SimpleProgressBar(self.statusFrame)
@@ -71,33 +71,28 @@ class Parser(tk.Frame):
 		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
 		self.loggerFileLabel.grid(row=5, column=10, columnspan=3, sticky="w")
 
+	def loadFilePreview(self):
+		self.loadPreviewValues()
+
 		""" preview selection """
+		tk.Label(self.previewFrame, text="Bitte die Spalten zum Parsen auwählen:", fg="red", borderwidth=0
+					).grid(row=1, column=1, columnspan=6, sticky="w", padx=3)
 		self.columnSelectionVars = []
-		self.checkButtons = []
 		for i in range(6):
 			self.columnSelectionVars.append(tk.IntVar())
+			tk.Checkbutton(self.previewFrame, text="", variable=self.columnSelectionVars[i], 
+							onvalue=1, offvalue=0
+							).grid(row=3, column=i+2)
 
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T1",
-												variable=self.columnSelectionVars[0],
-												onvalue=1, offvalue=0))
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T2",
-												variable=self.columnSelectionVars[1],
-												onvalue=1, offvalue=0))
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T3",
-												variable=self.columnSelectionVars[2],
-												onvalue=1, offvalue=0))
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U1",
-												variable=self.columnSelectionVars[3],
-												onvalue=1, offvalue=0))
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U2",
-												variable=self.columnSelectionVars[4],
-												onvalue=1, offvalue=0))
-		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U3",
-												variable=self.columnSelectionVars[5],
-												onvalue=1, offvalue=0))
+			tk.Label(self.previewFrame, text="U_" + str(i), borderwidth=0
+						).grid(row=4, column=i+2, sticky="ew", padx=3)
 
-		for i in range(len(self.checkButtons)):
-			self.checkButtons[i].grid(row=1, column=i+1, sticky="ew")
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][0]) + " V", borderwidth=0, width=7
+						).grid(row=5, column=i+2, sticky="ew")
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][1]) + " V", borderwidth=0, width=7
+						).grid(row=6, column=i+2, sticky="ew")
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][2]) + " V", borderwidth=0, width=7
+						).grid(row=7, column=i+2, sticky="ew")
 
 	def loadLoggerFile(self):
 		# open the file dialog
@@ -119,6 +114,8 @@ class Parser(tk.Frame):
 		except Exception as e:
 			raise e
 
+		self.loadFilePreview()
+
 	def parseLoggerFile(self):
 
 		try:
@@ -129,7 +126,7 @@ class Parser(tk.Frame):
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 			print(e)
 
-	def loadFilePreview(self):
+	def loadPreviewValues(self):
 		file_obj = open(self.loggerFile, 'r')
 		num_lines = file_len(self.loggerFile)
 
