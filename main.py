@@ -240,6 +240,8 @@ class Parser(tk.Frame):
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
+		master.protocol("WM_DELETE_WINDOW", self.closeApp)
+
 		super().__init__(master)
 
 		self.grid()
@@ -248,6 +250,13 @@ class Application(tk.Frame):
 
 		self.createGui()
 
+	def closeApp(self):
+		try:
+			self.parser.master.destroy()
+		except:
+			pass
+		self.master.destroy()
+
 	def createGui(self):
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
@@ -255,7 +264,7 @@ class Application(tk.Frame):
 
 		self.filemenu = tk.Menu(self.menubar, tearoff=0)
 		self.filemenu.add_command(label="Parser öffnen", command=self.initParser)
-		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.filemenu.add_command(label="Beenden", command=self.closeApp)
 		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
 
 		""" Frames """
