@@ -37,6 +37,7 @@ class Parser(tk.Frame):
 		self.createGui()
 
 	def createGui(self):
+
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
 		self.master.config(menu=self.menubar)
@@ -136,52 +137,47 @@ class Parser(tk.Frame):
 			raise e
 
 	def loadPreviewValues(self):
-		file_obj = open(self.loggerFile, 'r')
+		""" Loads the first three rows of the selected file"""
 		num_lines = file_len(self.loggerFile)
 
 		self.U_preview = []
 		for i in range(6):
 			self.U_preview.append([])
 
-		i = 0
-		for line in file_obj:
+		with open(self.loggerFile, 'r') as file_obj:
+			i = 0
+			for line in file_obj:
 
-			if line[0] == ";":
-				continue
-			if i > 3:
-				break;
-
-			tab_counter = 0
-			new_U = ""
-			for char in line:
-
-				if char == "	" and tab_counter > 1:
-					self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
-					new_U = ""
-				if char == "	":
-					tab_counter += 1
+				if line[0] == ";":
 					continue
-				if char == "\n":
-					self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
-					break
+				if i > 3:
+					break;
 
-				if tab_counter > 1:
-					new_U = new_U + char
+				tab_counter = 0
+				new_U = ""
+				for char in line:
 
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, num_lines)
-			i += 1
+					if char == "	" and tab_counter > 1:
+						self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
+						new_U = ""
+					if char == "	":
+						tab_counter += 1
+						continue
+					if char == "\n":
+						self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
+						break
 
-		file_obj.close()
+					if tab_counter > 1:
+						new_U = new_U + char
+
+				# write progress bar
+				if i / num_lines * 1000 % 1 >= 0.99:
+					self.load_bar.update(i, num_lines)
+				i += 1
 
 	def read_datalogger(self, inFile, outFile):
 		
-		file = inFile
-
-		num_lines = file_len(file)
-
-		file_obj = open(file, "r")
+		num_lines = file_len(inFile)
 
 		valid_lines = 0
 
@@ -189,56 +185,52 @@ class Parser(tk.Frame):
 		U2 = [] # <1V: on, >23V: off
 		U3 = [] # Schiebepoti: 100-250bar (0-10V)
 
-		i = 0
-		for line in file_obj:
+		with open(inFile, "r") as file_obj:
+			i = 0
+			for line in file_obj:
 
-			line = line.rstrip("\n")
+				line = line.rstrip("\n")
 
-			if line[0] == ";":
-				continue
-
-			valid_lines += 1
-
-			tab_counter = 0
-			new_U1 = ""
-			new_U2 = ""
-			new_U3 = ""
-			for char in line:
-
-				if char == "	":
-					tab_counter += 1
+				if line[0] == ";":
 					continue
 
-				if tab_counter == 5:
-					new_U1 = new_U1 + char
+				valid_lines += 1
 
-				if tab_counter == 6:
-					new_U2 = new_U2 + char
+				tab_counter = 0
+				new_U1 = ""
+				new_U2 = ""
+				new_U3 = ""
+				for char in line:
 
-				if tab_counter == 7:
-					new_U3 = new_U3 + char
+					if char == "	":
+						tab_counter += 1
+						continue
 
-			U1.append(float(new_U1.replace(",", ".")))
-			U2.append(float(new_U2.replace(",", ".")))
-			U3.append(float(new_U3.replace(",", ".")))
+					if tab_counter == 5:
+						new_U1 = new_U1 + char
 
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, num_lines)
-			i += 1
+					if tab_counter == 6:
+						new_U2 = new_U2 + char
 
-		file_obj.close()
+					if tab_counter == 7:
+						new_U3 = new_U3 + char
+
+				U1.append(float(new_U1.replace(",", ".")))
+				U2.append(float(new_U2.replace(",", ".")))
+				U3.append(float(new_U3.replace(",", ".")))
+
+				# write progress bar
+				if i / num_lines * 1000 % 1 >= 0.99:
+					self.load_bar.update(i, num_lines)
+				i += 1
 
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
 
-		outFile = outFile
-		outFile_obj = open(outFile, "w")
+		with open(outFile, "w") as outFile_obj:
+			for i in range(len(U1)):
+				outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
 
-		for i in range(len(U1)):
-			outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
-
-		outFile_obj.close()
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -406,32 +398,31 @@ class Application(tk.Frame):
 
 		num_lines = file_len(file)
 
-		file_obj = open(file, "r")
-
 		self.U1 = [] # pressure: 0-400bar (0-10V)
 		self.U2 = [] # <1V: on, >23V: off
 		self.U3 = [] # Schiebepoti: 100-250bar (0-10V)
 
-		# read the voltages from the previously created pyoutput file
-		i = 0 # for progress bar
-		for line in file_obj:
+		with open(file, "r") as file_obj:
+			# read the voltages from the previously created pyoutput file
+			i = 0 # for progress bar
+			for line in file_obj:
 
-			try:
-				new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
-			except ValueError:
-				msg = messagebox.showinfo("Error", "Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
-				return
-			except Exception as e:
-				raise e
+				try:
+					new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
+				except ValueError:
+					msg = messagebox.showinfo("Error", "Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
+					return
+				except Exception as e:
+					raise e
 
-			self.U1.append(float(new_U1.replace(",", ".")))
-			self.U2.append(float(new_U2.replace(",", ".")))
-			self.U3.append(float(new_U3.replace(",", ".")))
+				self.U1.append(float(new_U1.replace(",", ".")))
+				self.U2.append(float(new_U2.replace(",", ".")))
+				self.U3.append(float(new_U3.replace(",", ".")))
 
-			# write progress bar
-			if i / num_lines * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, num_lines)
-			i += 1
+				# write progress bar
+				if i / num_lines * 1000 % 1 >= 0.99:
+					self.load_bar.update(i, num_lines)
+				i += 1
 
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
@@ -447,7 +438,6 @@ class Application(tk.Frame):
 		self.p_OnAvg = None
 
 		self.updateTimeTable()
-		file_obj.close()
 
 	def calculateTimes(self):
 
