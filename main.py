@@ -18,7 +18,7 @@ def findFilenameSubstr(filename):
 		counter = 0 # counter to count the chars of the new directory or file
 		for i in range(len(filename)):
 			char = filename[i]
-			if char == '/': # start counting the chars from zero
+			if char == '/' or char == '\\': # start counting the chars from zero
 				counter = 0
 			elif char == '.': # the substring for the filename was found.
 				return filename[i-counter:i+4] # add everything from the last '/' to the substring
@@ -101,12 +101,15 @@ class Parser(tk.Frame):
 
 	def loadLoggerFile(self):
 		# open the file dialog
-		self.loggerFile = filedialog.askopenfilename(initialdir="files", title="Select file",
-													 filetypes=(("txt files","*.txt"),("all files","*.*")))
-
-		# check if a file was read in (otherwise return)
-		if self.loggerFile == '':
+		selectedFile = filedialog.askopenfilename(initialdir="files", title="Select file",
+													filetypes=(("txt files","*.txt"),("all files","*.*")))
+		# check if a file was read in
+		if selectedFile == '': # file dialog was canceled
 			return
+		else:
+			self.loggerFile = selectedFile
+			
+		self.focus_force()
 
 		# find the substring indicating the filename without the path
 		label = findFilenameSubstr(self.loggerFile)
@@ -129,7 +132,8 @@ class Parser(tk.Frame):
 			self.loggerFileLabel['text'] = findFilenameSubstr(outFile)
 		except Exception as e:
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
-			print(e)
+			self.focus_force()
+			raise e
 
 	def loadPreviewValues(self):
 		file_obj = open(self.loggerFile, 'r')
@@ -300,11 +304,13 @@ class Application(tk.Frame):
 
 	def loadFile(self):
 		# open the file dialog
-		self.file = filedialog.askopenfilename(initialdir=FILES_LOCATION, title="Select file", filetypes=(("txt files","*_PYOUTPUT.txt"),))
-
-		# check if a file was read in (otherwise return)
-		if self.file == '':
+		selectedFile = filedialog.askopenfilename(initialdir=FILES_LOCATION, title="Select file", 
+													filetypes=(("txt files","*_PYOUTPUT.txt"),))
+		# check if a file was read in
+		if selectedFile == '': # file dialog was canceled
 			return
+		else:
+			self.file = selectedFile
 
 		# find the substring indicating the filename without the path
 		label = findFilenameSubstr(self.file)
@@ -538,7 +544,7 @@ class Application(tk.Frame):
 		except AttributeError:
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
-			print(e)
+			raise e
 
 	def plot_U2(self):
 		try:
@@ -552,7 +558,7 @@ class Application(tk.Frame):
 		except AttributeError:
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
-			print(e)
+			raise e
 
 	def plot_U3(self):
 		try:
@@ -577,7 +583,7 @@ class Application(tk.Frame):
 		except AttributeError:
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
-			print(e)
+			raise e
 
 
 class SimpleTable(tk.Frame):
