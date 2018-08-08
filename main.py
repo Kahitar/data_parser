@@ -15,7 +15,7 @@ def main():
 
 def findFilenameSubstr(filename):
 		# find the substring indicating the filename without the path
-		counter = 0 # counter to count the chars of the new directory or file
+		counter = len(filename) # counter to count the chars of the new directory or file
 		for i in range(len(filename)):
 			char = filename[i]
 			if char == '/' or char == '\\': # start counting the chars from zero
@@ -27,8 +27,10 @@ def findFilenameSubstr(filename):
 				counter += 1
 
 class Parser(tk.Frame):
-	def __init__(self, master=None):
+	def __init__(self, master=None, mainApp=None):
 		super().__init__(master)
+
+		self.mainApp = mainApp
 
 		self.grid()
 		self.master.minsize(500, 300)
@@ -135,6 +137,10 @@ class Parser(tk.Frame):
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 			self.focus_force()
 			raise e
+
+		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
+												command=lambda: self.mainApp.setFileToLoad(outFile))
+		self.setToLoad.grid(row=20, column=10, sticky="ew")
 
 	def loadPreviewValues(self):
 		""" Loads the first three rows of the selected file"""
@@ -291,8 +297,25 @@ class Application(tk.Frame):
 		self.updateTimeTable()
 	
 	def initParser(self):
-		self.parser = Parser(tk.Tk())
+		self.parser = Parser(tk.Tk(), self)
 		self.parser.mainloop()
+
+	def setFileToLoad(self, file):
+		self.file = file
+
+		# find the substring indicating the filename without the path
+		label = findFilenameSubstr(self.file)
+
+		# set the file Label showing the selected file with the previously found substring
+		try:
+			self.fileLabel['text'] = label
+		except UnboundLocalError:
+			raise e
+		except Exception as e:
+			raise e
+
+		# parse the file
+		self.readVoltages()
 
 	def loadFile(self):
 		# open the file dialog
