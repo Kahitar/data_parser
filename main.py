@@ -29,6 +29,9 @@ class Parser(tk.Frame):
 		self.master.minsize(500, 500)
 		self.master.title("Parser data logger")
 
+		self.createGui()
+
+	def createGui(self):
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
 		self.master.config(menu=self.menubar)
@@ -46,10 +49,13 @@ class Parser(tk.Frame):
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=5)
 
-		self.load_bar = SimpleProgressBar(self.statusFrame)
-		self.createGui()
+		self.previewFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
+		self.previewFrame.grid(column=1, row=10)
 
-	def createGui(self):
+		""" Loading bar """
+		self.load_bar = SimpleProgressBar(self.statusFrame)
+
+		""" Buttons and Labels """
 		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen",
 											command=self.loadLoggerFile)
 		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
@@ -60,10 +66,38 @@ class Parser(tk.Frame):
 
 		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen",
 												command=self.parseLoggerFile)
-		self.parseLoggerFileButton.grid(row=2, column=5, sticky="ew")
+		self.parseLoggerFileButton.grid(row=5, column=5, sticky="ew")
 
 		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
-		self.loggerFileLabel.grid(row=2, column=10, columnspan=3, sticky="w")
+		self.loggerFileLabel.grid(row=5, column=10, columnspan=3, sticky="w")
+
+		""" preview selection """
+		self.columnSelectionVars = []
+		self.checkButtons = []
+		for i in range(6):
+			self.columnSelectionVars.append(tk.IntVar())
+
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T1",
+												variable=self.columnSelectionVars[0],
+												onvalue=1, offvalue=0))
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T2",
+												variable=self.columnSelectionVars[1],
+												onvalue=1, offvalue=0))
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="T3",
+												variable=self.columnSelectionVars[2],
+												onvalue=1, offvalue=0))
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U1",
+												variable=self.columnSelectionVars[3],
+												onvalue=1, offvalue=0))
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U2",
+												variable=self.columnSelectionVars[4],
+												onvalue=1, offvalue=0))
+		self.checkButtons.append(tk.Checkbutton(self.previewFrame, text="U3",
+												variable=self.columnSelectionVars[5],
+												onvalue=1, offvalue=0))
+
+		for i in range(len(self.checkButtons)):
+			self.checkButtons[i].grid(row=1, column=i+1, sticky="ew")
 
 	def loadLoggerFile(self):
 		# open the file dialog
@@ -99,9 +133,9 @@ class Parser(tk.Frame):
 		file_obj = open(self.loggerFile, 'r')
 		num_lines = file_len(self.loggerFile)
 
-		U = []
+		self.U_preview = []
 		for i in range(6):
-			U.append([]) 
+			self.U_preview.append([])
 
 		i = 0
 		for line in file_obj:
@@ -116,13 +150,13 @@ class Parser(tk.Frame):
 			for char in line:
 
 				if char == "	" and tab_counter > 1:
-					U[tab_counter-2].append(float(new_U.replace(",", ".")))
+					self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
 					new_U = ""
 				if char == "	":
 					tab_counter += 1
 					continue
 				if char == "\n":
-					U[tab_counter-2].append(float(new_U.replace(",", ".")))
+					self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
 					break
 
 				if tab_counter > 1:
@@ -132,6 +166,8 @@ class Parser(tk.Frame):
 			if i / num_lines * 1000 % 1 >= 0.99:
 				self.load_bar.update(i, num_lines)
 			i += 1
+
+		file_obj.close()
 
 	def read_datalogger(self, inFile, outFile):
 		
@@ -185,6 +221,8 @@ class Parser(tk.Frame):
 				self.load_bar.update(i, num_lines)
 			i += 1
 
+		file_obj.close()
+
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
 
@@ -204,6 +242,9 @@ class Application(tk.Frame):
 		self.master.minsize(500,500)
 		self.master.title("Data logger")
 
+		self.createGui()
+
+	def createGui(self):
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
 		self.master.config(menu=self.menubar)
@@ -224,10 +265,33 @@ class Application(tk.Frame):
 		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
 		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
+		""" Loading bar """
 		self.load_bar = SimpleProgressBar(self.statusFrame)
 
-		self.createGui()
+		""" Buttons and Labels """
+		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
+		self.openFileButton.grid(row=3, column=5, sticky="ew")
 
+		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.fileLabel.grid(row=3, column=10, sticky="w")
+
+		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
+		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
+
+		self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
+		self.U2_plotButton.grid(row=0, column=2, padx=3)
+
+		self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
+		self.U3_plotButton.grid(row=0, column=3, padx=3)
+		
+		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
+		self.U1_plotButton.grid(row=0, column=4, padx=3)
+
+		""" Table """ 
+		self.table = SimpleTable(self.dataFrame, 8, 2)
+		self.table.grid(row=6, column=10, rowspan=9, padx=10)
+		self.updateTimeTable()
+	
 	def initParser(self):
 		self.parser = Parser(tk.Tk())
 		self.parser.mainloop()
@@ -253,29 +317,6 @@ class Application(tk.Frame):
 
 		# parse the file
 		self.readVoltages()
-
-	def createGui(self):
-		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
-		self.openFileButton.grid(row=3, column=5, sticky="ew")
-
-		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
-		self.fileLabel.grid(row=3, column=10, sticky="w")
-
-		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
-		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
-
-		self.table = SimpleTable(self.dataFrame, 8, 2)
-		self.table.grid(row=6, column=10, rowspan=9, padx=10)
-		self.updateTimeTable()
-
-		self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
-		self.U2_plotButton.grid(row=0, column=2, padx=3)
-
-		self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
-		self.U3_plotButton.grid(row=0, column=3, padx=3)
-		
-		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
-		self.U1_plotButton.grid(row=0, column=4, padx=3)
 
 	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
 	def showTimes(self): 
@@ -398,6 +439,7 @@ class Application(tk.Frame):
 		self.p_OnAvg = None
 
 		self.updateTimeTable()
+		file_obj.close()
 
 	def calculateTimes(self):
 
