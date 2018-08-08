@@ -95,6 +95,44 @@ class Parser(tk.Frame):
 			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 			print(e)
 
+	def loadFilePreview(self):
+		file_obj = open(self.loggerFile, 'r')
+		num_lines = file_len(self.loggerFile)
+
+		U = []
+		for i in range(6):
+			U.append([]) 
+
+		i = 0
+		for line in file_obj:
+
+			if line[0] == ";":
+				continue
+			if i > 3:
+				break;
+
+			tab_counter = 0
+			new_U = ""
+			for char in line:
+
+				if char == "	" and tab_counter > 1:
+					U[tab_counter-2].append(float(new_U.replace(",", ".")))
+					new_U = ""
+				if char == "	":
+					tab_counter += 1
+					continue
+				if char == "\n":
+					U[tab_counter-2].append(float(new_U.replace(",", ".")))
+					break
+
+				if tab_counter > 1:
+					new_U = new_U + char
+
+			# write progress bar
+			if i / num_lines * 1000 % 1 >= 0.99:
+				self.load_bar.update(i, num_lines)
+			i += 1
+
 	def read_datalogger(self, inFile, outFile):
 		
 		file = inFile
