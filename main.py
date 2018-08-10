@@ -138,9 +138,10 @@ class Parser(tk.Frame):
 			self.focus_force()
 			raise e
 
-		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
+		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden\n(Schließt den Parser)",
 												command=lambda: self.mainApp.setFileToLoad(outFile))
 		self.setToLoad.grid(row=20, column=10, sticky="ew")
+		tk.Label(self.parserFrame, text="(Schließt den Parser)", fg="red").grid(row=21,column=10, sticky="ew")
 
 	def loadPreviewValues(self):
 		""" Loads the first three rows of the selected file"""
@@ -323,8 +324,12 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
+		# kill the parser
+		self.parser.master.destroy()
+		
 		# parse the file
 		self.readVoltages()
+	
 
 	def loadFile(self):
 		# open the file dialog
