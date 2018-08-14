@@ -96,11 +96,14 @@ class Parser(tk.Frame):
 			tk.Label(self.previewFrame, text="U_" + str(i), borderwidth=0
 						).grid(row=4, column=i+2, sticky="ew", padx=3)
 
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][0]) + " V", borderwidth=0, width=7
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][0]) + " V", 
+						borderwidth=0, width=7
 						).grid(row=5, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][1]) + " V", borderwidth=0, width=7
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][1]) + " V", 
+						borderwidth=0, width=7
 						).grid(row=6, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][2]) + " V", borderwidth=0, width=7
+			tk.Label(self.previewFrame, text=str(self.U_preview[i][2]) + " V", 
+						borderwidth=0, width=7
 						).grid(row=7, column=i+2, sticky="ew")
 
 	def loadLoggerFile(self):
@@ -139,7 +142,7 @@ class Parser(tk.Frame):
 			self.focus_force()
 			raise e
 
-		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden\n(Schließt den Parser)",
+		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
 												command=lambda: self.mainApp.setFileToLoad(outFile))
 		self.setToLoad.grid(row=20, column=10, sticky="ew")
 		tk.Label(self.parserFrame, text="(Schließt den Parser)", fg="red").grid(row=21,column=10, sticky="ew")
@@ -148,9 +151,7 @@ class Parser(tk.Frame):
 		""" Loads the first three rows of the selected file"""
 		num_lines = file_len(self.loggerFile)
 
-		self.U_preview = []
-		for i in range(6):
-			self.U_preview.append([])
+		self.U_preview = [[] for x in range(6)]
 
 		with open(self.loggerFile, 'r') as file_obj:
 			i = 0
@@ -185,57 +186,46 @@ class Parser(tk.Frame):
 	def read_datalogger(self, inFile, outFile):
 		
 		num_lines = file_len(inFile)
-
 		valid_lines = 0
+		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
+		self.U = [[] for x in range(sum(parseColumns))]
+		print("Len(U) = ", len(self.U))
+		print("Parse columns: ", parseColumns)
 
-		U1 = [] # pressure: 0-400bar (0-10V)
-		U2 = [] # <1V: on, >23V: off
-		U3 = [] # Schiebepoti: 100-250bar (0-10V)
-
+		# open input file and parse it
 		with open(inFile, "r") as file_obj:
-			i = 0
+			progress = 0 # for progress bar
 			for line in file_obj:
-
-				line = line.rstrip("\n")
 
 				if line[0] == ";":
 					continue
 
-				valid_lines += 1
+				newU = [None for x in range(6)]
+				try:
+					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+				except Exception as e:
+					raise e
 
-				tab_counter = 0
-				new_U1 = ""
-				new_U2 = ""
-				new_U3 = ""
-				for char in line:
+				j = 0
+				for k, val in enumerate(newU):
+					if parseColumns[k] == 1:
+						self.U[j].append(val)
+						j += 1
 
-					if char == "	":
-						tab_counter += 1
-						continue
+				# update progress bar
+				self.load_bar.update(progress, num_lines)
+				progress += 1
 
-					if tab_counter == 5:
-						new_U1 = new_U1 + char
+			# loop finished, fill progress bar
+			self.load_bar.update(1, 1)
 
-					if tab_counter == 6:
-						new_U2 = new_U2 + char
-
-					if tab_counter == 7:
-						new_U3 = new_U3 + char
-
-				U1.append(float(new_U1.replace(",", ".")))
-				U2.append(float(new_U2.replace(",", ".")))
-				U3.append(float(new_U3.replace(",", ".")))
-
-				# write progress bar
-				self.load_bar.update(i, num_lines)
-				i += 1
-
-		# loop finished, fill progress bar
-		self.load_bar.update(1, 1)
-
+		# open output file and save voltages
 		with open(outFile, "w") as outFile_obj:
-			for i in range(len(U1)):
-				outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
+			for j in range(len(self.U[0])):
+				for i in range(len(self.U)):
+					outFile_obj.write("{} ".format(self.U[i][j]))
+				outFile_obj.write("\n")
+
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -305,7 +295,8 @@ class Application(tk.Frame):
 		self.updateTimeTable()
 	
 	def initParser(self):
-		self.parser = Parser(tk.Tk(), self)
+		# start the parser as a toplevel widget
+		self.parser = Parser(tk.Toplevel(), self)
 		self.parser.mainloop()
 
 	def setFileToLoad(self, file):
@@ -442,7 +433,7 @@ class Application(tk.Frame):
 			for line in file_obj:
 
 				try:
-					new_U1, new_U2, new_U3 = line.replace("\n", "").split(" ")
+					new_U1, new_U2, new_U3 = line.rstrip().split(" ")
 				except ValueError:
 					msg = messagebox.showinfo("Error", "Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
 					return
