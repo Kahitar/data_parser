@@ -154,34 +154,28 @@ class Parser(tk.Frame):
 		self.U_preview = [[] for x in range(6)]
 
 		with open(self.loggerFile, 'r') as file_obj:
-			i = 0
-			for line in file_obj:
+			for progress, line in enumerate(file_obj):
 
 				if line[0] == ";":
 					continue
-				if i > 3:
-					break;
+				if progress > 20:
+					break
 
-				tab_counter = 0
-				new_U = ""
-				for char in line:
+				newU = [None for x in range(6)]
+				try:
+					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+				except Exception as e:
+					msg = messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
+					print(e)
 
-					if char == "	" and tab_counter > 1:
-						self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
-						new_U = ""
-					if char == "	":
-						tab_counter += 1
-						continue
-					if char == "\n":
-						self.U_preview[tab_counter-2].append(float(new_U.replace(",", ".")))
-						break
+				for i in range(6):
+					self.U_preview[i].append(newU[i])
 
-					if tab_counter > 1:
-						new_U = new_U + char
+				# update progress bar
+				self.load_bar.update(progress, num_lines)
 
-				# write progress bar
-				self.load_bar.update(i, num_lines)
-				i += 1
+			# loop finished, fill progress bar
+			self.load_bar.update(1, 1)
 
 	def read_datalogger(self, inFile, outFile):
 		
@@ -189,13 +183,10 @@ class Parser(tk.Frame):
 		valid_lines = 0
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
 		self.U = [[] for x in range(sum(parseColumns))]
-		print("Len(U) = ", len(self.U))
-		print("Parse columns: ", parseColumns)
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
-			progress = 0 # for progress bar
-			for line in file_obj:
+			for progress, line in enumerate(file_obj):
 
 				if line[0] == ";":
 					continue
@@ -204,7 +195,8 @@ class Parser(tk.Frame):
 				try:
 					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
 				except Exception as e:
-					raise e
+					msg = messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
+					print(e)
 
 				j = 0
 				for k, val in enumerate(newU):
@@ -214,7 +206,6 @@ class Parser(tk.Frame):
 
 				# update progress bar
 				self.load_bar.update(progress, num_lines)
-				progress += 1
 
 			# loop finished, fill progress bar
 			self.load_bar.update(1, 1)
@@ -423,14 +414,11 @@ class Application(tk.Frame):
 
 		num_lines = file_len(file)
 
-		self.U1 = [] # pressure: 0-400bar (0-10V)
-		self.U2 = [] # <1V: on, >23V: off
-		self.U3 = [] # Schiebepoti: 100-250bar (0-10V)
+		self.U = [[] for x in range(6)]
 
 		with open(file, "r") as file_obj:
 			# read the voltages from the previously created pyoutput file
-			i = 0 # for progress bar
-			for line in file_obj:
+			for progress, line in enumerate(file_obj):
 
 				try:
 					new_U1, new_U2, new_U3 = line.rstrip().split(" ")
@@ -440,16 +428,21 @@ class Application(tk.Frame):
 				except Exception as e:
 					raise e
 
-				self.U1.append(float(new_U1.replace(",", ".")))
-				self.U2.append(float(new_U2.replace(",", ".")))
-				self.U3.append(float(new_U3.replace(",", ".")))
+				self.U[0].append(float(new_U1.replace(",", ".")))
+				self.U[1].append(float(new_U2.replace(",", ".")))
+				self.U[2].append(float(new_U3.replace(",", ".")))
 
 				# write progress bar
-				self.load_bar.update(i, num_lines)
-				i += 1
+				self.load_bar.update(progress, num_lines)
 
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
+
+		# <========== temp ==========
+		self.U1 = self.U[0]
+		self.U2 = self.U[1]
+		self.U3 = self.U[2]
+		#  ========== temp ==========>
 
 		self.t_ges = None
 		self.t_on = None
