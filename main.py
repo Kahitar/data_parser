@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
+import time
 
 FILES_LOCATION = os.getenv('APPDATA') + "\\data_logger"
 if not os.path.isdir(FILES_LOCATION):
@@ -178,8 +179,7 @@ class Parser(tk.Frame):
 						new_U = new_U + char
 
 				# write progress bar
-				if i / num_lines * 1000 % 1 >= 0.99:
-					self.load_bar.update(i, num_lines)
+				self.load_bar.update(i, num_lines)
 				i += 1
 
 	def read_datalogger(self, inFile, outFile):
@@ -227,8 +227,7 @@ class Parser(tk.Frame):
 				U3.append(float(new_U3.replace(",", ".")))
 
 				# write progress bar
-				if i / num_lines * 1000 % 1 >= 0.99:
-					self.load_bar.update(i, num_lines)
+				self.load_bar.update(i, num_lines)
 				i += 1
 
 		# loop finished, fill progress bar
@@ -237,7 +236,6 @@ class Parser(tk.Frame):
 		with open(outFile, "w") as outFile_obj:
 			for i in range(len(U1)):
 				outFile_obj.write("{} {} {}\n".format(U1[i], U2[i], U3[i]))
-
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -418,7 +416,6 @@ class Application(tk.Frame):
 		self.update_idletasks()
 
 	def readVoltages(self):
-
 		try:
 			file = self.file
 
@@ -457,8 +454,7 @@ class Application(tk.Frame):
 				self.U3.append(float(new_U3.replace(",", ".")))
 
 				# write progress bar
-				if i / num_lines * 1000 % 1 >= 0.99:
-					self.load_bar.update(i, num_lines)
+				self.load_bar.update(i, num_lines)
 				i += 1
 
 		# loop finished, fill progress bar
@@ -538,8 +534,7 @@ class Application(tk.Frame):
 					potiSwitching = False
 
 			# write progress bar
-			if i / len(self.U1) * 1000 % 1 >= 0.99:
-				self.load_bar.update(i, len(self.U1))
+			self.load_bar.update(i, len(self.U1))
 		
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
@@ -642,21 +637,32 @@ class SimpleProgressBar(tk.Frame):
 	def __init__(self, parent, total=100):
 		tk.Frame.__init__(self, parent)
 
-		self.progressbar = ttk.Progressbar(master=parent, length=200, mode='determinate', maximum=total)
+		self.progressbar = ttk.Progressbar(master=parent, length=200, 
+											mode='determinate', maximum=total)
 		self.progressbar.grid(column=0, row=0)
 		
 		self.progressLabel = tk.Label(parent, text="0%", width=5)
 		self.progressLabel.grid(column=1, row=0)
 
+		self.updateTime = 0.005 # ms
+		self.lastUpdate = time.time()
+
 	def update(self, count, total=None):
-		if total != None:
+		if count == total:
 			self.progressbar['maximum'] = total
-		
-		percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
-    	
-		self.progressbar['value'] = count
-		self.progressLabel['text'] = str(percents) + '%'
-		self.progressbar.update_idletasks()
+			self.progressbar['value'] = count
+			self.progressLabel['text'] = "100%"
+		elif time.time() - self.lastUpdate > self.updateTime:
+			if total != None:
+				self.progressbar['maximum'] = total
+			
+			percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
+	    	
+			self.progressbar['value'] = count
+			self.progressLabel['text'] = str(percents) + '%'
+			self.progressbar.update_idletasks()
+
+			self.lastUpdate = time.time()
 
 # length of a file
 def file_len(fname):
