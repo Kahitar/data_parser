@@ -17,8 +17,7 @@ def main():
 def findFilenameSubstr(filename):
 		# find the substring indicating the filename without the path
 		counter = len(filename) # counter to count the chars of the new directory or file
-		for i in range(len(filename)):
-			char = filename[i]
+		for i, char in enumerate(filename):
 			if char == '/' or char == '\\': # start counting the chars from zero
 				counter = 0
 			elif char == '.': # the substring for the filename was found.
