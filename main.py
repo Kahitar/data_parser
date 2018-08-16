@@ -85,6 +85,15 @@ class Parser(tk.Frame):
 		""" preview selection """
 		tk.Label(self.previewFrame, text="Bitte die Spalten zum Parsen auwählen:", fg="red", borderwidth=0
 					).grid(row=1, column=1, columnspan=6, sticky="w", padx=3)
+
+		# preview Zeiten
+		for i in range(3):
+			tk.Label(self.previewFrame, text=str(i+1) + ".", borderwidth=0, width=3
+					).grid(row=5+i, column=1, sticky="ew")
+		ttk.Label(self.previewFrame, text="...", borderwidth=0, width=3
+				).grid(row=8, column=4, sticky="e")
+
+		# preview checkbuttons and values
 		self.columnSelectionVars = []
 		for i in range(6):
 			self.columnSelectionVars.append(tk.IntVar())
@@ -151,6 +160,7 @@ class Parser(tk.Frame):
 		num_lines = file_len(self.loggerFile)
 
 		self.U_preview = [[] for x in range(6)]
+		self.t_preview = []
 
 		with open(self.loggerFile, 'r') as file_obj:
 			for progress, line in enumerate(file_obj):
@@ -169,6 +179,8 @@ class Parser(tk.Frame):
 
 				for i in range(6):
 					self.U_preview[i].append(newU[i])
+
+				self.t_preview.append(newDate)
 
 				# update progress bar
 				self.load_bar.update(progress, num_lines)
