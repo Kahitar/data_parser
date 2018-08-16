@@ -42,17 +42,32 @@ class DataConfigurator(tk.Frame):
 
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
-		self.master.config(menu=self.menubar)
 
 		self.filemenu = tk.Menu(self.menubar, tearoff=0)
 		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+
+		self.master.config(menu=self.menubar)
 		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
 
 		""" Frames """
-		self.parserFrame = tk.LabelFrame(master=self, text="Reihen konfigurieren", borderwidth=1, 
-										relief="sunken", width=500, height=300, padx=5, pady=5)
-		self.parserFrame.grid(column=0, row=10)
-		self.parserFrame.grid_propagate(False)
+		self.configColsFrame = tk.LabelFrame(master=self, text="Spalten konfigurieren", borderwidth=1,
+									relief="sunken", width=500, height=400, padx=5, pady=15, background="black")
+		self.configColsFrame.grid(column=0, row=10, rowspan=2)
+		self.configColsFrame.grid_propagate(False)
+
+		""" Buttons and Labels """
+		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
+		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
+		tk.Label(self.configColsFrame, text="Was kommt hier rein... ??").grid(row=1, column=4, sticky="ew", padx=3, pady=3)
+
+		for i in range(6):
+			tk.Label(self.configColsFrame, text="Spalte " + str(i+1)).grid(row=2*i+5, column=1, sticky="w", padx=3, pady=3)
+			tk.Label(self.configColsFrame, text="<Eingabe>").grid(row=2*i+5, column=2, sticky="w", padx=3, pady=3)
+			tk.Label(self.configColsFrame, text="10 V =^= 100 bar").grid(row=2*i+5, column=3, sticky="w", padx=3, pady=3)
+			tk.Label(self.configColsFrame, text="20 V =^= 250 bar").grid(row=2*i+6, column=3, sticky="w", padx=3, pady=3)
+			tk.Label(self.configColsFrame, text="eeeh...").grid(row=2*i+5, column=4, sticky="w", padx=3, pady=3)
+
+
 
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
