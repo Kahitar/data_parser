@@ -26,6 +26,34 @@ def findFilenameSubstr(filename):
 			else:
 				counter += 1
 
+class DataConfigurator(tk.Frame):
+	def __init__(self, master=None, mainApp=None):
+		super().__init__(master)
+
+		self.mainApp = mainApp
+
+		self.grid()
+		self.master.minsize(500, 300)
+		self.master.title("Daten konfigurieren")
+
+		self.createGui()
+
+	def createGui(self):
+
+		""" Menu bar """
+		self.menubar = tk.Menu(self)
+		self.master.config(menu=self.menubar)
+
+		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
+
+		""" Frames """
+		self.parserFrame = tk.LabelFrame(master=self, text="Reihen konfigurieren", borderwidth=1, 
+										relief="sunken", width=500, height=300, padx=5, pady=5)
+		self.parserFrame.grid(column=0, row=10)
+		self.parserFrame.grid_propagate(False)
+
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
 		super().__init__(master)
@@ -246,6 +274,10 @@ class Application(tk.Frame):
 			self.parser.master.destroy()
 		except:
 			pass
+		try:
+			self.dataConfigurator.master.destroy()
+		except:
+			pass
 		self.master.destroy()
 
 	def createGui(self):
@@ -255,6 +287,7 @@ class Application(tk.Frame):
 
 		self.filemenu = tk.Menu(self.menubar, tearoff=0)
 		self.filemenu.add_command(label="Parser öffnen", command=self.initParser)
+		self.filemenu.add_command(label="Daten konfigurieren", command=self.initDataConfigurator)
 		self.filemenu.add_command(label="Beenden", command=self.closeApp)
 		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
 
@@ -262,7 +295,7 @@ class Application(tk.Frame):
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=5)
 
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
 		self.dataFrame.grid(column=0, row=15)
 		self.dataFrame.grid_propagate(False)
 
@@ -278,6 +311,12 @@ class Application(tk.Frame):
 
 		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
 		self.fileLabel.grid(row=3, column=10, sticky="w")
+
+		self.configDataButton = tk.Button(self.dataFrame, text="Daten konfigurieren", command=self.initDataConfigurator)
+		self.configDataButton.grid(row=4, column=5, sticky="ew")
+
+		self.configDataLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+		self.configDataLabel.grid(row=4, column=10, sticky="w")
 
 		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
@@ -300,6 +339,11 @@ class Application(tk.Frame):
 		# start the parser as a toplevel widget
 		self.parser = Parser(tk.Toplevel(), self)
 		self.parser.mainloop()
+
+	def initDataConfigurator(self):
+		# start the data configurator window as a toplevel widget
+		self.dataConfigurator = DataConfigurator(tk.Toplevel(), self)
+		self.dataConfigurator.mainloop()
 
 	def setFileToLoad(self, file):
 		self.file = file
