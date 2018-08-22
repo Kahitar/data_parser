@@ -476,22 +476,10 @@ class Application(tk.Frame):
 		with open(file, "r") as file_obj:
 			dataDict = json.load(file_obj)
 
-		num_lines = file_len(file)
-
-		t0 = time.time()
-		i = 0
 		for key, values in dataDict.items():
-			if i == 0:
-				num_lines = len(values)
-				print("Lines: ", num_lines)
 			self.U.append(list(map(float, values)))
 
-			# write progress bar
-			self.load_bar.update(i, num_lines)
-			i += 1
-		print("JSON parsen: {}s".format(time.time()-t0))
-
-		# loop finished, fill progress bar
+		# fill progress bar
 		self.load_bar.update(1, 1)
 
 		# <========== temp ==========
