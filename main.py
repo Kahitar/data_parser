@@ -476,8 +476,14 @@ class Application(tk.Frame):
 		with open(file, "r") as file_obj:
 			dataDict = json.load(file_obj)
 
+		i = 0
+		dicLen = len(dataDict)
 		for key, values in dataDict.items():
 			self.U.append(list(map(float, values)))
+
+			# progress bar
+			self.load_bar.update(i, dicLen)
+			i+=1
 
 		# fill progress bar
 		self.load_bar.update(1, 1)
