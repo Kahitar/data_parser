@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
 import time
+import json
 
 FILES_LOCATION = os.getenv('APPDATA') + "\\data_logger"
 if not os.path.isdir(FILES_LOCATION):
@@ -200,7 +201,6 @@ class Parser(tk.Frame):
 
 	def loadPreviewValues(self):
 		""" Loads the first three rows of the selected file"""
-		num_lines = file_len(self.loggerFile)
 
 		self.U_preview = [[] for x in range(6)]
 		self.t_preview = []
@@ -223,20 +223,12 @@ class Parser(tk.Frame):
 				for i in range(6):
 					self.U_preview[i].append(newU[i])
 
-				self.t_preview.append(newDate)
-
-				# update progress bar
-				self.load_bar.update(progress, num_lines)
-
-			# loop finished, fill progress bar
-			self.load_bar.update(1, 1)
-
 	def read_datalogger(self, inFile, outFile):
 		
 		num_lines = file_len(inFile)
 		valid_lines = 0
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
-		self.U = [[] for x in range(sum(parseColumns))]
+		U = {"Spalte"+str(_): [] for _ in range(sum(parseColumns))} # dictionary to store 
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
@@ -252,11 +244,11 @@ class Parser(tk.Frame):
 					msg = messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					print(e)
 
-				j = 0
+				i = 0
 				for k, val in enumerate(newU):
 					if parseColumns[k] == 1:
-						self.U[j].append(val)
-						j += 1
+						U["Spalte"+str(i)].append(val.replace(",","."))
+						i += 1
 
 				# update progress bar
 				self.load_bar.update(progress, num_lines)
@@ -264,12 +256,9 @@ class Parser(tk.Frame):
 			# loop finished, fill progress bar
 			self.load_bar.update(1, 1)
 
-		# open output file and save voltages
+		# write the dictionary to the output file as JSON
 		with open(outFile, "w") as outFile_obj:
-			for j in range(len(self.U[0])):
-				for i in range(len(self.U)):
-					outFile_obj.write("{} ".format(self.U[i][j]))
-				outFile_obj.write("\n")
+			json.dump(U, outFile_obj)
 
 
 class Application(tk.Frame):
@@ -482,28 +471,25 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
-		num_lines = file_len(file)
-
-		self.U = [[] for x in range(6)]
+		self.U = []
 
 		with open(file, "r") as file_obj:
-			# read the voltages from the previously created pyoutput file
-			for progress, line in enumerate(file_obj):
+			dataDict = json.load(file_obj)
 
-				try:
-					new_U1, new_U2, new_U3 = line.rstrip().split(" ")
-				except ValueError:
-					msg = messagebox.showinfo("Error", "Die ausgewählte Datei hat nicht das richtige Format.\nBitte andere Datei auswählen.")
-					return
-				except Exception as e:
-					raise e
+		num_lines = file_len(file)
 
-				self.U[0].append(float(new_U1.replace(",", ".")))
-				self.U[1].append(float(new_U2.replace(",", ".")))
-				self.U[2].append(float(new_U3.replace(",", ".")))
+		t0 = time.time()
+		i = 0
+		for key, values in dataDict.items():
+			if i == 0:
+				num_lines = len(values)
+				print("Lines: ", num_lines)
+			self.U.append(list(map(float, values)))
 
-				# write progress bar
-				self.load_bar.update(progress, num_lines)
+			# write progress bar
+			self.load_bar.update(i, num_lines)
+			i += 1
+		print("JSON parsen: {}s".format(time.time()-t0))
 
 		# loop finished, fill progress bar
 		self.load_bar.update(1, 1)
