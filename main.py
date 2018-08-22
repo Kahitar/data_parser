@@ -28,7 +28,7 @@ def findFilenameSubstr(filename):
 				counter += 1
 
 class DataConfigurator(tk.Frame):
-	def __init__(self, master=None, mainApp=None):
+	def __init__(self, master=None, mainApp=None, file=None):
 		super().__init__(master)
 
 		self.mainApp = mainApp
@@ -36,6 +36,8 @@ class DataConfigurator(tk.Frame):
 		self.grid()
 		self.master.minsize(500, 300)
 		self.master.title("Daten konfigurieren")
+
+		self.dataFile = file
 
 		self.createGui()
 
@@ -65,10 +67,24 @@ class DataConfigurator(tk.Frame):
 			tk.Label(self.configColsFrame, text="Spalte " + str(i+1)).grid(row=2*i+5, column=1, sticky="w", padx=3, pady=3)
 			tk.Label(self.configColsFrame, text="<Eingabe>").grid(row=2*i+5, column=2, sticky="w", padx=3, pady=3)
 			tk.Label(self.configColsFrame, text="10 V =^= 100 bar").grid(row=2*i+5, column=3, sticky="w", padx=3, pady=3)
-			tk.Label(self.configColsFrame, text="20 V =^= 250 bar").grid(row=2*i+6, column=3, sticky="w", padx=3, pady=3)
+			self.label1 = tk.Label(self.configColsFrame, text="20 V =^= 250 bar")
+			self.label1.grid(row=2*i+6, column=3, sticky="w", padx=3, pady=3)
 			tk.Label(self.configColsFrame, text="eeeh...").grid(row=2*i+5, column=4, sticky="w", padx=3, pady=3)
 
+		self.loadColumnData()
 
+	def loadColumnData(self):
+
+		with open(self.dataFile, "r") as f:
+			dataDict = json.load(f)
+
+		maxValue = 0
+		for u in dataDict["Spalte0"]["data"]:
+			if float(u) > maxValue:
+				maxValue = float(u)
+
+		self.label1 = tk.Label(self.configColsFrame, text="{} =^= 250 bar".format(maxValue))
+		self.label1.grid(row=6, column=3, sticky="w", padx=3, pady=3)
 
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
@@ -190,7 +206,7 @@ class Parser(tk.Frame):
 			self.read_datalogger(self.loggerFile, outFile)
 			self.loggerFileLabel['text'] = findFilenameSubstr(outFile)
 		except Exception as e:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
 			self.focus_force()
 			raise e
 
@@ -217,7 +233,7 @@ class Parser(tk.Frame):
 				try:
 					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
 				except Exception as e:
-					msg = messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
+					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					print(e)
 
 				for i in range(6):
@@ -241,7 +257,7 @@ class Parser(tk.Frame):
 				try:
 					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
 				except Exception as e:
-					msg = messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
+					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					print(e)
 
 				i = 0
@@ -346,8 +362,14 @@ class Application(tk.Frame):
 
 	def initDataConfigurator(self):
 		# start the data configurator window as a toplevel widget
-		self.dataConfigurator = DataConfigurator(tk.Toplevel(), self)
-		self.dataConfigurator.mainloop()
+		try:
+			if not self.file:
+				raise AttributeError
+		except AttributeError:
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei auswählen.")
+		else:
+			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self, file=self.file)
+			self.dataConfigurator.mainloop()
 
 	def setFileToLoad(self, file):
 		self.file = file
@@ -399,7 +421,7 @@ class Application(tk.Frame):
 		try:
 			self.calculateTimes()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Bitte zuerst Daten einlesen!")
+			messagebox.showinfo("Error", "Bitte zuerst Daten einlesen!")
 		except Exception as e:
 			print(e)
 		else:
@@ -463,10 +485,10 @@ class Application(tk.Frame):
 			if file == '':
 				raise AttributeError
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen.")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen.")
 			return
 		except FileNotFoundError:
-			msg = messagebox.showinfo("Error", "Bitte eine korrekte Datei öffnen.")
+			messagebox.showinfo("Error", "Bitte eine korrekte Datei öffnen.")
 			return
 		except Exception as e:
 			raise e
@@ -598,7 +620,7 @@ class Application(tk.Frame):
 			self.plot_U2()
 
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			raise e
 
@@ -612,7 +634,7 @@ class Application(tk.Frame):
 			plt.title("Gerät an/aus")
 			plt.show()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			raise e
 
@@ -637,7 +659,7 @@ class Application(tk.Frame):
 			
 			plt.show()
 		except AttributeError:
-			msg = messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			raise e
 
