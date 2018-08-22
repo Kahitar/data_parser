@@ -228,7 +228,7 @@ class Parser(tk.Frame):
 		num_lines = file_len(inFile)
 		valid_lines = 0
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
-		U = {"Spalte"+str(_): [] for _ in range(sum(parseColumns))} # dictionary to store 
+		U = {"Spalte"+str(_): {"data": []} for _ in range(sum(parseColumns))} # dictionary to store 
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
@@ -247,7 +247,7 @@ class Parser(tk.Frame):
 				i = 0
 				for k, val in enumerate(newU):
 					if parseColumns[k] == 1:
-						U["Spalte"+str(i)].append(val.replace(",","."))
+						U["Spalte"+str(i)]["data"].append(val.replace(",","."))
 						i += 1
 
 				# update progress bar
@@ -477,9 +477,9 @@ class Application(tk.Frame):
 			dataDict = json.load(file_obj)
 
 		i = 0
-		dicLen = len(dataDict)
+		dicLen = len(dataDict) # for progress bar
 		for key, values in dataDict.items():
-			self.U.append(list(map(float, values)))
+			self.U.append(list(map(float, values["data"])))
 
 			# progress bar
 			self.load_bar.update(i, dicLen)
