@@ -47,24 +47,33 @@ class DataConversionFrame(tk.Frame):
 		tk.Label(self, text="bar").grid(row=2, column=4, sticky="w", pady=3) # TODO: change this to dropdown
 
 	def getConversionFunctionParams(self):
-		""" Returns the conversion factor for the data entered """
+		""" Returns the conversion parameters for the data entered 
+		Conversion function: y = y1 + (x-x1)*((y1-y2)/(x1-x2))"""
 		try:
 			x1 = int(self.x1.get())
 			x2 = int(self.x2.get())
 			y1 = int(self.y1.get())
 			y2 = int(self.y2.get())
 			return {"x1": x1, "x2": x2, "y1": y1, "y2": y2}
-		except:
-			return {"x1": 0, "x2": 0, "y1": 1, "y2": 1}
+		except ValueError:
+			print("Setting standard conversion values because: ")
+			return {"x1": 0, "x2": 1, "y1": 0, "y2": 1}
+		except Exception as e:
+			raise e
 
 	def setConversionFunctionParams(self, conversionDict):
+		self.x1.delete(0, len(self.x1.get()))
+		self.x2.delete(0, len(self.x2.get()))
+		self.y1.delete(0, len(self.y1.get()))
+		self.y2.delete(0, len(self.y2.get()))
+
 		self.x1.insert(0, conversionDict["x1"])
 		self.x2.insert(0, conversionDict["x2"])
 		self.y1.insert(0, conversionDict["y1"])
 		self.y2.insert(0, conversionDict["y2"])
 
 class DataConfigurator(tk.Frame):
-	def __init__(self, master=None, mainApp=None, dataDict=None):
+	def __init__(self, master=None, mainApp=None):
 		super().__init__(master)
 		master.protocol("WM_DELETE_WINDOW", self.close)
 
@@ -106,8 +115,10 @@ class DataConfigurator(tk.Frame):
 			self.dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
 			try:
 				self.dataConversionFrames[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+			except KeyError:
+				self.dataConversionFrames[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
 			except Exception as e:
-				pass
+				raise e
 
 		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
@@ -136,6 +147,9 @@ class Parser(tk.Frame):
 		self.master.title("Parser data logger")
 
 		self.createGui()
+
+	def close(self):
+		self.master.destroy()
 
 	def createGui(self):
 
@@ -250,7 +264,7 @@ class Parser(tk.Frame):
 			raise e
 
 		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
-												command=lambda: self.mainApp.setFileToLoad(outFile))
+												command=lambda: self.mainApp.setFileToLoad(outFile, True))
 		self.setToLoad.grid(row=20, column=10, sticky="ew")
 		tk.Label(self.parserFrame, text="(Schließt den Parser)", fg="red").grid(row=21,column=10, sticky="ew")
 
@@ -315,7 +329,6 @@ class Parser(tk.Frame):
 		with open(outFile, "w") as outFile_obj:
 			json.dump(U, outFile_obj)
 
-
 class Application(tk.Frame):
 	def __init__(self, master=None):
 		master.protocol("WM_DELETE_WINDOW", self.closeApp)
@@ -328,16 +341,38 @@ class Application(tk.Frame):
 
 		self.createGui()
 
+	def writeData(self, outFile):
+		# write the data dictionary to the output file as JSON
+		with open(outFile, "w") as file:
+			json.dump(self.dataDict, file)
+
+		try:
+			print("Saved: ", self.dataDict["Spalte0"]["convFunc"])
+		except KeyError:
+			print("No conversion values set")
+		except Exception as e:
+			raise e
+
 	def closeApp(self):
 		try:
-			self.parser.master.destroy()
+			self.parser.close()
 		except:
 			pass
 		try:
 			self.dataConfigurator.close()
 		except:
 			pass
+		self.writeData(self.file)
 		self.master.destroy()
+
+	def newFile(self, file):
+		""" Sets a new JSON file and makes sure that data currently
+		loaded is saved to the old file"""
+		try:
+			self.writeData(self.file)
+		except:
+			print("Caution: Couldn't save data file!")
+		self.file = file
 
 	def createGui(self):
 		""" Menu bar """
@@ -393,9 +428,15 @@ class Application(tk.Frame):
 		self.table = SimpleTable(self.dataFrame, 8, 2)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
 		self.updateTimeTable()
+
+	def saveAndClearData(self):
+		pass
+
 	
 	def initParser(self):
 		# start the parser as a toplevel widget
+		self.saveAndClearData()
+
 		self.parser = Parser(tk.Toplevel(), self)
 		self.parser.mainloop()
 
@@ -407,11 +448,14 @@ class Application(tk.Frame):
 		except AttributeError:
 			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
 		else:
-			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self, self.dataDict)
+			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self)
 			self.dataConfigurator.mainloop()
 
-	def setFileToLoad(self, file):
-		self.file = file
+	def setFileToLoad(self, file, deleteOldData=False):
+		if not deleteOldData:
+			self.newFile(file)
+		else:
+			self.file = file
 
 		# find the substring indicating the filename without the path
 		label = findFilenameSubstr(self.file)
@@ -424,14 +468,17 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
-		# kill the parser
-		self.parser.master.destroy()
+		# close the parser
+		self.parser.close()
 		
 		# parse the file
-		self.readVoltages()
+		self.loadData()
 	
 
 	def loadFile(self):
+		""" Opens the file dialog to ask for a new file to load
+		and loads the data from the file"""
+
 		# open the file dialog
 		selectedFile = filedialog.askopenfilename(initialdir=FILES_LOCATION, title="Select file", 
 													filetypes=(("txt files","*_PYOUTPUT.txt"),))
@@ -439,7 +486,7 @@ class Application(tk.Frame):
 		if selectedFile == '': # file dialog was canceled
 			return
 		else:
-			self.file = selectedFile
+			self.newFile(selectedFile)
 
 		# find the substring indicating the filename without the path
 		label = findFilenameSubstr(self.file)
@@ -453,7 +500,7 @@ class Application(tk.Frame):
 			raise e
 
 		# parse the file
-		self.readVoltages()
+		self.loadData()
 
 	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
 	def showTimes(self): 
@@ -517,7 +564,8 @@ class Application(tk.Frame):
 
 		self.update_idletasks()
 
-	def readVoltages(self):
+	def loadData(self):
+		""" Reads the data from a file into memory """
 		try:
 			file = self.file
 
