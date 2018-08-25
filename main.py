@@ -57,18 +57,22 @@ class DataConversionFrame(tk.Frame):
 		except:
 			return {"x1": 0, "x2": 0, "y1": 1, "y2": 1}
 
+	def setConversionFunctionParams(self, conversionDict):
+		self.x1.insert(0, conversionDict["x1"])
+		self.x2.insert(0, conversionDict["x2"])
+		self.y1.insert(0, conversionDict["y1"])
+		self.y2.insert(0, conversionDict["y2"])
 
 class DataConfigurator(tk.Frame):
 	def __init__(self, master=None, mainApp=None, dataDict=None):
 		super().__init__(master)
+		master.protocol("WM_DELETE_WINDOW", self.close)
 
 		self.mainApp = mainApp
 
 		self.grid()
 		self.master.minsize(500, 300)
 		self.master.title("Daten konfigurieren")
-
-		self.dataDict = dataDict
 
 		self.createGui()
 
@@ -78,7 +82,7 @@ class DataConfigurator(tk.Frame):
 		self.menubar = tk.Menu(self)
 
 		self.filemenu = tk.Menu(self.menubar, tearoff=0)
-		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
+		self.filemenu.add_command(label="Beenden", command=self.close)
 
 		self.master.config(menu=self.menubar)
 		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
@@ -91,7 +95,7 @@ class DataConfigurator(tk.Frame):
 		""" Buttons and Labels """
 		self.nameFields = []
 		self.dataConversionFrames = []
-		for i in range(len(self.dataDict)):
+		for i in range(len(self.mainApp.dataDict)):
 			tk.Label(self.configColsFrame, text=str(i+1)).grid(row=2*i+5, column=1, padx=3, pady=3)
 
 			# name Fields
@@ -100,6 +104,10 @@ class DataConfigurator(tk.Frame):
 
 			self.dataConversionFrames.append(DataConversionFrame(self.configColsFrame))
 			self.dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
+			try:
+				self.dataConversionFrames[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+			except Exception as e:
+				pass
 
 		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
@@ -107,13 +115,15 @@ class DataConfigurator(tk.Frame):
 
 		tk.Button(self, text="Eingaben speichern", command=self.safeConfigData).grid(column=0, row=1)
 
+	def close(self):
+		self.safeConfigData()
+		self.master.destroy()
+
 	def safeConfigData(self):
 		i = 0
-		for key, value in self.dataDict.items():
+		for key, value in self.mainApp.dataDict.items():
 			value["convFunc"] = self.dataConversionFrames[i].getConversionFunctionParams()
 			i += 1
-
-		print(self.dataDict["Spalte0"]["convFunc"])
 
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
@@ -324,7 +334,7 @@ class Application(tk.Frame):
 		except:
 			pass
 		try:
-			self.dataConfigurator.master.destroy()
+			self.dataConfigurator.close()
 		except:
 			pass
 		self.master.destroy()
