@@ -32,23 +32,34 @@ class DataConversionFrame(tk.Frame):
 		super().__init__(master)
 
 		# conversion Fields
-		self.e1 = tk.Entry(self)
-		self.e1.grid(row=1, column=1, sticky="w", padx=3, pady=3)
+		self.x1 = tk.Entry(self)
+		self.x1.grid(row=1, column=1, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="V =").grid(row=1, column=2, sticky="w", pady=3) # TODO: change this to dropdown
-		self.e2 = tk.Entry(self)
-		self.e2.grid(row=1, column=3, sticky="w", padx=3, pady=3)
+		self.y1 = tk.Entry(self)
+		self.y1.grid(row=1, column=3, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="bar").grid(row=1, column=4, sticky="w", pady=3) # TODO: change this to dropdown
 
-		self.e1 = tk.Entry(self)
-		self.e1.grid(row=2, column=1, sticky="w", padx=3, pady=3)
+		self.x2 = tk.Entry(self)
+		self.x2.grid(row=2, column=1, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="V =").grid(row=2, column=2, sticky="w", pady=3) # TODO: change this to dropdown
-		self.e2 = tk.Entry(self)
-		self.e2.grid(row=2, column=3, sticky="w", padx=3, pady=3)
+		self.y2 = tk.Entry(self)
+		self.y2.grid(row=2, column=3, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="bar").grid(row=2, column=4, sticky="w", pady=3) # TODO: change this to dropdown
+
+	def getConversionFunctionParams(self):
+		""" Returns the conversion factor for the data entered """
+		try:
+			x1 = int(self.x1.get())
+			x2 = int(self.x2.get())
+			y1 = int(self.y1.get())
+			y2 = int(self.y2.get())
+			return {"x1": x1, "x2": x2, "y1": y1, "y2": y2}
+		except:
+			return {"x1": 0, "x2": 0, "y1": 1, "y2": 1}
 
 
 class DataConfigurator(tk.Frame):
-	def __init__(self, master=None, mainApp=None, data=None):
+	def __init__(self, master=None, mainApp=None, dataDict=None):
 		super().__init__(master)
 
 		self.mainApp = mainApp
@@ -57,7 +68,7 @@ class DataConfigurator(tk.Frame):
 		self.master.minsize(500, 300)
 		self.master.title("Daten konfigurieren")
 
-		self.dataDict = data
+		self.dataDict = dataDict
 
 		self.createGui()
 
@@ -78,33 +89,31 @@ class DataConfigurator(tk.Frame):
 		self.configColsFrame.grid(column=0, row=10, rowspan=2)
 
 		""" Buttons and Labels """
-		nameFields = []
-		dataConversionFrames = []
+		self.nameFields = []
+		self.dataConversionFrames = []
 		for i in range(len(self.dataDict)):
 			tk.Label(self.configColsFrame, text=str(i+1)).grid(row=2*i+5, column=1, padx=3, pady=3)
 
 			# name Fields
-			nameFields.append(tk.Entry(self.configColsFrame))
-			nameFields[i].grid(row=2*i+5, column=2, padx=3, pady=3)
+			self.nameFields.append(tk.Entry(self.configColsFrame))
+			self.nameFields[i].grid(row=2*i+5, column=2, padx=3, pady=3)
 
-			dataConversionFrames.append(DataConversionFrame(self.configColsFrame))
-			dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
+			self.dataConversionFrames.append(DataConversionFrame(self.configColsFrame))
+			self.dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
 
 		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
-		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)	
+		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 
-		# self.loadColumnData()
+		tk.Button(self, text="Eingaben speichern", command=self.safeConfigData).grid(column=0, row=1)
 
-	def loadColumnData(self):
+	def safeConfigData(self):
+		i = 0
+		for key, value in self.dataDict.items():
+			value["convFunc"] = self.dataConversionFrames[i].getConversionFunctionParams()
+			i += 1
 
-		maxValue = 0
-		for u in self.dataDict["Spalte0"]["data"]:
-			if float(u) > maxValue:
-				maxValue = float(u)
-
-		self.label1 = tk.Label(self.configColsFrame, text="{} V =^= 250 bar".format(maxValue))
-		self.label1.grid(row=6, column=3, sticky="w", padx=3, pady=3)
+		print(self.dataDict["Spalte0"]["convFunc"])
 
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
@@ -264,7 +273,7 @@ class Parser(tk.Frame):
 		num_lines = file_len(inFile)
 		valid_lines = 0
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
-		U = {"Spalte"+str(_): {"data": []} for _ in range(sum(parseColumns))} # dictionary to store 
+		U = {"Spalte"+str(_): {"data": [], "Unit": "V"} for _ in range(sum(parseColumns))} # dictionary to store 
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
