@@ -27,8 +27,28 @@ def findFilenameSubstr(filename):
 			else:
 				counter += 1
 
+class DataConversionFrame(tk.Frame):
+	def __init__(self, master=None):
+		super().__init__(master)
+
+		# conversion Fields
+		self.e1 = tk.Entry(self)
+		self.e1.grid(row=1, column=1, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V =").grid(row=1, column=2, sticky="w", pady=3) # TODO: change this to dropdown
+		self.e2 = tk.Entry(self)
+		self.e2.grid(row=1, column=3, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="bar").grid(row=1, column=4, sticky="w", pady=3) # TODO: change this to dropdown
+
+		self.e1 = tk.Entry(self)
+		self.e1.grid(row=2, column=1, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V =").grid(row=2, column=2, sticky="w", pady=3) # TODO: change this to dropdown
+		self.e2 = tk.Entry(self)
+		self.e2.grid(row=2, column=3, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="bar").grid(row=2, column=4, sticky="w", pady=3) # TODO: change this to dropdown
+
+
 class DataConfigurator(tk.Frame):
-	def __init__(self, master=None, mainApp=None, file=None):
+	def __init__(self, master=None, mainApp=None, data=None):
 		super().__init__(master)
 
 		self.mainApp = mainApp
@@ -37,7 +57,7 @@ class DataConfigurator(tk.Frame):
 		self.master.minsize(500, 300)
 		self.master.title("Daten konfigurieren")
 
-		self.dataFile = file
+		self.dataDict = data
 
 		self.createGui()
 
@@ -54,36 +74,36 @@ class DataConfigurator(tk.Frame):
 
 		""" Frames """
 		self.configColsFrame = tk.LabelFrame(master=self, text="Spalten konfigurieren", borderwidth=1,
-									relief="sunken", width=500, height=400, padx=5, pady=15, background="black")
+									relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.configColsFrame.grid(column=0, row=10, rowspan=2)
-		self.configColsFrame.grid_propagate(False)
 
 		""" Buttons and Labels """
+		nameFields = []
+		dataConversionFrames = []
+		for i in range(len(self.dataDict)):
+			tk.Label(self.configColsFrame, text=str(i+1)).grid(row=2*i+5, column=1, padx=3, pady=3)
+
+			# name Fields
+			nameFields.append(tk.Entry(self.configColsFrame))
+			nameFields[i].grid(row=2*i+5, column=2, padx=3, pady=3)
+
+			dataConversionFrames.append(DataConversionFrame(self.configColsFrame))
+			dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
+
+		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
-		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
-		tk.Label(self.configColsFrame, text="Was kommt hier rein... ??").grid(row=1, column=4, sticky="ew", padx=3, pady=3)
+		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)	
 
-		for i in range(6):
-			tk.Label(self.configColsFrame, text="Spalte " + str(i+1)).grid(row=2*i+5, column=1, sticky="w", padx=3, pady=3)
-			tk.Label(self.configColsFrame, text="<Eingabe>").grid(row=2*i+5, column=2, sticky="w", padx=3, pady=3)
-			tk.Label(self.configColsFrame, text="10 V =^= 100 bar").grid(row=2*i+5, column=3, sticky="w", padx=3, pady=3)
-			self.label1 = tk.Label(self.configColsFrame, text="20 V =^= 250 bar")
-			self.label1.grid(row=2*i+6, column=3, sticky="w", padx=3, pady=3)
-			tk.Label(self.configColsFrame, text="eeeh...").grid(row=2*i+5, column=4, sticky="w", padx=3, pady=3)
-
-		self.loadColumnData()
+		# self.loadColumnData()
 
 	def loadColumnData(self):
 
-		with open(self.dataFile, "r") as f:
-			dataDict = json.load(f)
-
 		maxValue = 0
-		for u in dataDict["Spalte0"]["data"]:
+		for u in self.dataDict["Spalte0"]["data"]:
 			if float(u) > maxValue:
 				maxValue = float(u)
 
-		self.label1 = tk.Label(self.configColsFrame, text="{} =^= 250 bar".format(maxValue))
+		self.label1 = tk.Label(self.configColsFrame, text="{} V =^= 250 bar".format(maxValue))
 		self.label1.grid(row=6, column=3, sticky="w", padx=3, pady=3)
 
 class Parser(tk.Frame):
@@ -363,12 +383,12 @@ class Application(tk.Frame):
 	def initDataConfigurator(self):
 		# start the data configurator window as a toplevel widget
 		try:
-			if not self.file:
+			if not self.dataDict:
 				raise AttributeError
 		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei auswählen.")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
 		else:
-			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self, file=self.file)
+			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self, self.dataDict)
 			self.dataConfigurator.mainloop()
 
 	def setFileToLoad(self, file):
@@ -496,11 +516,11 @@ class Application(tk.Frame):
 		self.U = []
 
 		with open(file, "r") as file_obj:
-			dataDict = json.load(file_obj)
+			self.dataDict = json.load(file_obj)
 
 		i = 0
-		dicLen = len(dataDict) # for progress bar
-		for key, values in dataDict.items():
+		dicLen = len(self.dataDict) # for progress bar
+		for key, values in self.dataDict.items():
 			self.U.append(list(map(float, values["data"])))
 
 			# progress bar
