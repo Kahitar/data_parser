@@ -23,28 +23,31 @@ def findFilenameSubstr(filename):
 				counter = 0
 			elif char == '.': # the substring for the filename was found.
 				return filename[i-counter:i+4] # add everything from the last '/' to the substring
-				break
 			else:
 				counter += 1
 
-class DataConversionFrame(tk.Frame):
+class DataConfiguratorRow(tk.Frame):
 	def __init__(self, master=None):
 		super().__init__(master)
 
+		# name field
+		self.nameField = tk.Entry(self)
+		self.nameField.grid(row=1, column=3, padx=3, pady=3)
+
 		# conversion Fields
 		self.x1 = tk.Entry(self)
-		self.x1.grid(row=1, column=1, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V =").grid(row=1, column=2, sticky="w", pady=3) # TODO: change this to dropdown
+		self.x1.grid(row=1, column=5, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V =").grid(row=1, column=6, sticky="w", pady=3) # TODO: change this to dropdown
 		self.y1 = tk.Entry(self)
-		self.y1.grid(row=1, column=3, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="bar").grid(row=1, column=4, sticky="w", pady=3) # TODO: change this to dropdown
+		self.y1.grid(row=1, column=7, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="bar").grid(row=1, column=8, sticky="w", pady=3) # TODO: change this to dropdown
 
 		self.x2 = tk.Entry(self)
-		self.x2.grid(row=2, column=1, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V =").grid(row=2, column=2, sticky="w", pady=3) # TODO: change this to dropdown
+		self.x2.grid(row=2, column=5, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V =").grid(row=2, column=6, sticky="w", pady=3) # TODO: change this to dropdown
 		self.y2 = tk.Entry(self)
-		self.y2.grid(row=2, column=3, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="bar").grid(row=2, column=4, sticky="w", pady=3) # TODO: change this to dropdown
+		self.y2.grid(row=2, column=7, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="bar").grid(row=2, column=8, sticky="w", pady=3) # TODO: change this to dropdown
 
 	def getConversionFunctionParams(self):
 		""" Returns the conversion parameters for the data entered 
@@ -101,30 +104,34 @@ class DataConfigurator(tk.Frame):
 									relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.configColsFrame.grid(column=0, row=10, rowspan=2)
 
-		""" Buttons and Labels """
-		self.nameFields = []
-		self.dataConversionFrames = []
+		""" Data configurator rows """
+		self.DataConfiguratorRows = []
 		for i in range(len(self.mainApp.dataDict)):
+			# row number label
 			tk.Label(self.configColsFrame, text=str(i+1)).grid(row=2*i+5, column=1, padx=3, pady=3)
 
-			# name Fields
-			self.nameFields.append(tk.Entry(self.configColsFrame))
-			self.nameFields[i].grid(row=2*i+5, column=2, padx=3, pady=3)
-
-			self.dataConversionFrames.append(DataConversionFrame(self.configColsFrame))
-			self.dataConversionFrames[i].grid(row=2*i+5, column=3, padx=3, pady=3)
+			# data configurator rows
+			self.DataConfiguratorRows.append(DataConfiguratorRow(self.configColsFrame))
+			self.DataConfiguratorRows[i].grid(row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
 			try:
-				self.dataConversionFrames[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+				self.DataConfiguratorRows[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
 			except KeyError:
-				self.dataConversionFrames[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
+				self.DataConfiguratorRows[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
+			except Exception as e:
+				raise e
+			try:
+				self.DataConfiguratorRows[i].nameField.delete(0, len(self.DataConfiguratorRows))
+				self.DataConfiguratorRows[i].nameField.insert(0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
 			except Exception as e:
 				raise e
 
-		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
+		# data conversion headline
+		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=1, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
 		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 
-		tk.Button(self, text="Eingaben speichern", command=self.safeConfigData).grid(column=0, row=1)
+		# test button
+		tk.Button(self, text="Testbutton", command=self.safeConfigData).grid(column=0, row=1)
 
 	def close(self):
 		self.safeConfigData()
@@ -132,8 +139,9 @@ class DataConfigurator(tk.Frame):
 
 	def safeConfigData(self):
 		i = 0
-		for key, value in self.mainApp.dataDict.items():
-			value["convFunc"] = self.dataConversionFrames[i].getConversionFunctionParams()
+		for _, value in self.mainApp.dataDict.items():
+			value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
+			value["name"] = self.DataConfiguratorRows[i].nameField.get()
 			i += 1
 
 class Parser(tk.Frame):
@@ -295,7 +303,6 @@ class Parser(tk.Frame):
 	def read_datalogger(self, inFile, outFile):
 		
 		num_lines = file_len(inFile)
-		valid_lines = 0
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
 		U = {"Spalte"+str(_): {"data": [], "Unit": "V"} for _ in range(sum(parseColumns))} # dictionary to store 
 
@@ -356,14 +363,29 @@ class Application(tk.Frame):
 	def closeApp(self):
 		try:
 			self.parser.close()
-		except:
+		except AttributeError:
 			pass
+		except Exception as e:
+			self.parser.master.destroy()
+			print("ERROR: Couldn't close the parser nominally!")
+			print(e)
 		try:
 			self.dataConfigurator.close()
-		except:
+		except AttributeError:
 			pass
-		self.writeData(self.file)
-		self.master.destroy()
+		except Exception as e:
+			self.dataConfigurator.master.destroy()
+			print("ERROR: Couldn't close the data configurator nominally!")
+			print(e)
+		try:
+			self.writeData(self.file)
+		except AttributeError:
+			pass
+		except Exception as e:
+			print("ERROR: Couldn't close the App nominally!")
+			raise e
+		finally:
+			self.master.destroy()
 
 	def newFile(self, file):
 		""" Sets a new JSON file and makes sure that data currently
@@ -429,13 +451,8 @@ class Application(tk.Frame):
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
 		self.updateTimeTable()
 
-	def saveAndClearData(self):
-		pass
-
-	
 	def initParser(self):
 		# start the parser as a toplevel widget
-		self.saveAndClearData()
 
 		self.parser = Parser(tk.Toplevel(), self)
 		self.parser.mainloop()
@@ -587,7 +604,7 @@ class Application(tk.Frame):
 
 		i = 0
 		dicLen = len(self.dataDict) # for progress bar
-		for key, values in self.dataDict.items():
+		for _, values in self.dataDict.items():
 			self.U.append(list(map(float, values["data"])))
 
 			# progress bar
@@ -633,7 +650,6 @@ class Application(tk.Frame):
 		sumPressureOnCount = 0
 
 		# constants
-		max_Possible_Pressure = 250 # [bar]
 		U1_volts_per_Bar = 10 / 400 # [V/bar]
 
 		# evaluate data
@@ -810,16 +826,8 @@ class SimpleProgressBar(tk.Frame):
 # length of a file
 def file_len(fname):
     with open(fname) as f:
-        for i, l in enumerate(f):
+        for i, _ in enumerate(f):
             pass
     return i + 1
-
-def plot_voltages(voltages, indices):
-	voltages_to_plot = []
-	for i in indices:
-		voltages_to_plot.append(voltages[i])
-
-	plt.plot(indices,voltages_to_plot)
-	plt.show()
 
 if __name__ == '__main__': main()
