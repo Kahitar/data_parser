@@ -27,27 +27,45 @@ def findFilenameSubstr(filename):
 				counter += 1
 
 class DataConfiguratorRow(tk.Frame):
-	def __init__(self, master=None):
+	def __init__(self, master, isHeadline=False, rowNumber=0):
 		super().__init__(master)
+
+		# headline
+		if isHeadline:
+			tk.Label(self, text="Spalte").grid(row=1, column=1, sticky="ew", padx=3, pady=3)
+			tk.Label(self, text="Name").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
+			tk.Label(self, text="Umrechnung").grid(row=1, column=5, columnspan=3, sticky="ew", padx=3, pady=3)
+
+		# row number label
+		tk.Label(self, text=str(rowNumber)).grid(row=2, column=1, padx=20, pady=3)
 
 		# name field
 		self.nameField = tk.Entry(self)
-		self.nameField.grid(row=1, column=3, padx=3, pady=3)
+		self.nameField.grid(row=2, column=3, padx=3, pady=3)
 
 		# conversion Fields
-		self.x1 = tk.Entry(self)
-		self.x1.grid(row=1, column=5, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V =").grid(row=1, column=6, sticky="w", pady=3) # TODO: change this to dropdown
-		self.y1 = tk.Entry(self)
-		self.y1.grid(row=1, column=7, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="bar").grid(row=1, column=8, sticky="w", pady=3) # TODO: change this to dropdown
+		self.x1 = tk.Entry(self, width=5, justify="center")
+		self.x1.grid(row=2, column=5, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V = ").grid(row=2, column=6, sticky="w", pady=5)
+		self.y1 = tk.Entry(self, width=5, justify="center")
+		self.y1.grid(row=2, column=7, sticky="w", padx=3, pady=3)
 
-		self.x2 = tk.Entry(self)
-		self.x2.grid(row=2, column=5, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V =").grid(row=2, column=6, sticky="w", pady=3) # TODO: change this to dropdown
-		self.y2 = tk.Entry(self)
-		self.y2.grid(row=2, column=7, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="bar").grid(row=2, column=8, sticky="w", pady=3) # TODO: change this to dropdown
+		self.x2 = tk.Entry(self, width=5, justify="center")
+		self.x2.grid(row=3, column=5, sticky="w", padx=3, pady=3)
+		tk.Label(self, text="V =").grid(row=3, column=6, sticky="w", pady=5)
+		self.y2 = tk.Entry(self, width=5, justify="center")
+		self.y2.grid(row=3, column=7, sticky="w", padx=3, pady=3)
+		self.y2_UnitLabel = tk.Label(self, text="V")
+		self.y2_UnitLabel.grid(row=3, column=8, sticky="w", pady=5)
+
+		self.Unit_y1 = tk.StringVar(self, value='V')
+		self.om_Unit_y1 = tk.OptionMenu(self, self.Unit_y1, *{'V', 'bar', '°C'})
+		self.om_Unit_y1.grid(row=2, column=8, sticky="w", pady=5)
+
+		self.Unit_y1.trace("w", self.setConversionUnit)
+
+	def setConversionUnit(self, *args):
+		self.y2_UnitLabel['text'] = self.Unit_y1.get()
 
 	def getConversionFunctionParams(self):
 		""" Returns the conversion parameters for the data entered 
@@ -106,12 +124,11 @@ class DataConfigurator(tk.Frame):
 
 		""" Data configurator rows """
 		self.DataConfiguratorRows = []
+		headline = True
 		for i in range(len(self.mainApp.dataDict)):
-			# row number label
-			tk.Label(self.configColsFrame, text=str(i+1)).grid(row=2*i+5, column=1, padx=3, pady=3)
-
 			# data configurator rows
-			self.DataConfiguratorRows.append(DataConfiguratorRow(self.configColsFrame))
+			self.DataConfiguratorRows.append(DataConfiguratorRow(self.configColsFrame, isHeadline=headline, rowNumber=i))
+			headline = False
 			self.DataConfiguratorRows[i].grid(row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
 			try:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
@@ -122,13 +139,10 @@ class DataConfigurator(tk.Frame):
 			try:
 				self.DataConfiguratorRows[i].nameField.delete(0, len(self.DataConfiguratorRows))
 				self.DataConfiguratorRows[i].nameField.insert(0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
+			except KeyError:
+				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i))
 			except Exception as e:
 				raise e
-
-		# data conversion headline
-		tk.Label(self.configColsFrame, text="Spalte").grid(row=1, column=1, sticky="ew", padx=3, pady=3)
-		tk.Label(self.configColsFrame, text="Name").grid(row=1, column=2, sticky="ew", padx=3, pady=3)
-		tk.Label(self.configColsFrame, text="Umrechnung").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 
 		# test button
 		tk.Button(self, text="Testbutton", command=self.safeConfigData).grid(column=0, row=1)
