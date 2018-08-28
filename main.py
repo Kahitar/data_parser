@@ -10,6 +10,20 @@ FILES_LOCATION = os.getenv('APPDATA') + "\\data_logger"
 if not os.path.isdir(FILES_LOCATION):
 	os.mkdir(FILES_LOCATION)
 
+def timeit(method):
+	""" This function can be used as a decorator to measure a functions execution time """
+	def timed(*args, **kw):
+		ts = time.time()
+		result = method(*args, **kw)
+		te = time.time()
+		if 'log_time' in kw:
+			name = kw.get('log_name', method.__name__.upper())
+			kw['log_time'][name] = int((te - ts) * 1000)
+		else:
+			print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
+		return result
+	return timed
+
 def main():
 	root = tk.Tk()
 	app = Application(master=root)
@@ -35,6 +49,7 @@ class DataConfiguratorRow(tk.Frame):
 			tk.Label(self, text="Spalte").grid(row=1, column=1, sticky="ew", padx=3, pady=3)
 			tk.Label(self, text="Name").grid(row=1, column=3, sticky="ew", padx=3, pady=3)
 			tk.Label(self, text="Umrechnung").grid(row=1, column=5, columnspan=3, sticky="ew", padx=3, pady=3)
+			tk.Label(self, text="Einheit").grid(row=1, column=8, sticky="ew", padx=3, pady=3)
 
 		# row number label
 		tk.Label(self, text=str(rowNumber)).grid(row=2, column=1, padx=20, pady=3)
@@ -44,22 +59,22 @@ class DataConfiguratorRow(tk.Frame):
 		self.nameField.grid(row=2, column=3, padx=3, pady=3)
 
 		# conversion Fields
-		self.x1 = tk.Entry(self, width=5, justify="center")
+		self.x1 = tk.Entry(self, width=4, justify="center")
 		self.x1.grid(row=2, column=5, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="V = ").grid(row=2, column=6, sticky="w", pady=5)
-		self.y1 = tk.Entry(self, width=5, justify="center")
+		self.y1 = tk.Entry(self, width=4, justify="center")
 		self.y1.grid(row=2, column=7, sticky="w", padx=3, pady=3)
 
-		self.x2 = tk.Entry(self, width=5, justify="center")
+		self.x2 = tk.Entry(self, width=4, justify="center")
 		self.x2.grid(row=3, column=5, sticky="w", padx=3, pady=3)
 		tk.Label(self, text="V =").grid(row=3, column=6, sticky="w", pady=5)
-		self.y2 = tk.Entry(self, width=5, justify="center")
+		self.y2 = tk.Entry(self, width=4, justify="center")
 		self.y2.grid(row=3, column=7, sticky="w", padx=3, pady=3)
 		self.y2_UnitLabel = tk.Label(self, text="V")
 		self.y2_UnitLabel.grid(row=3, column=8, sticky="w", pady=5)
 
 		self.Unit_y1 = tk.StringVar(self, value='V')
-		self.om_Unit_y1 = tk.OptionMenu(self, self.Unit_y1, *{'V', 'bar', '°C'})
+		self.om_Unit_y1 = tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C'))
 		self.om_Unit_y1.grid(row=2, column=8, sticky="w", pady=5)
 
 		self.Unit_y1.trace("w", self.setConversionUnit)
@@ -76,6 +91,10 @@ class DataConfiguratorRow(tk.Frame):
 			y1 = int(self.y1.get())
 			y2 = int(self.y2.get())
 			return {"x1": x1, "x2": x2, "y1": y1, "y2": y2}
+		except tk._tkinter.TclError:
+			# This error occures when closing the app if the DataConfigurator 
+			# was previously opened but closed before the app is closed.  
+			pass
 		except ValueError:
 			print("Setting standard conversion values because: ")
 			return {"x1": 0, "x2": 1, "y1": 0, "y2": 1}
@@ -130,12 +149,16 @@ class DataConfigurator(tk.Frame):
 			self.DataConfiguratorRows.append(DataConfiguratorRow(self.configColsFrame, isHeadline=headline, rowNumber=i))
 			headline = False
 			self.DataConfiguratorRows[i].grid(row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
+			
 			try:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+			except TypeError: # TODO: Why do I suddenly get a typeError instead of a keyError? (NoneType object is not subscriptable)
+				self.DataConfiguratorRows[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
 			except KeyError:
 				self.DataConfiguratorRows[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
 			except Exception as e:
 				raise e
+			
 			try:
 				self.DataConfiguratorRows[i].nameField.delete(0, len(self.DataConfiguratorRows))
 				self.DataConfiguratorRows[i].nameField.insert(0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
@@ -144,12 +167,10 @@ class DataConfigurator(tk.Frame):
 			except Exception as e:
 				raise e
 
-		# test button
-		tk.Button(self, text="Testbutton", command=self.safeConfigData).grid(column=0, row=1)
-
 	def close(self):
 		self.safeConfigData()
 		self.master.destroy()
+		#self.mainApp.dataConfigurator = None # TODO: Why is this not working?
 
 	def safeConfigData(self):
 		i = 0
@@ -172,6 +193,7 @@ class Parser(tk.Frame):
 
 	def close(self):
 		self.master.destroy()
+		#self.mainApp.parser = None # TODO: WHy is this not working?
 
 	def createGui(self):
 
@@ -374,7 +396,10 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
+	@timeit
 	def closeApp(self):
+		# Try to close the dataConfigurator via it's close function.
+		# If that doesn't work, just destroy it
 		try:
 			self.parser.close()
 		except AttributeError:
@@ -383,6 +408,9 @@ class Application(tk.Frame):
 			self.parser.master.destroy()
 			print("ERROR: Couldn't close the parser nominally!")
 			print(e)
+		
+		# Try to close the dataConfigurator via it's close function.
+		# If that doesn't work, just destroy it
 		try:
 			self.dataConfigurator.close()
 		except AttributeError:
@@ -391,6 +419,8 @@ class Application(tk.Frame):
 			self.dataConfigurator.master.destroy()
 			print("ERROR: Couldn't close the data configurator nominally!")
 			print(e)
+		
+		# Try to safe the data currently stored in the dataDict
 		try:
 			self.writeData(self.file)
 		except AttributeError:
@@ -400,6 +430,13 @@ class Application(tk.Frame):
 			raise e
 		finally:
 			self.master.destroy()
+
+	def histogramTest(self):
+		try:
+			plt.hist([100 + v*150/10 for v in self.U[2]], 50, density=1)
+			plt.show()
+		except Exception as e:
+			raise e
 
 	def newFile(self, file):
 		""" Sets a new JSON file and makes sure that data currently
@@ -464,6 +501,9 @@ class Application(tk.Frame):
 		self.table = SimpleTable(self.dataFrame, 8, 2)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
 		self.updateTimeTable()
+	
+		# test button
+		tk.Button(self, text="Testbutton", command=self.histogramTest).grid(column=0, row=1)
 
 	def initParser(self):
 		# start the parser as a toplevel widget
