@@ -431,10 +431,45 @@ class Application(tk.Frame):
 		finally:
 			self.master.destroy()
 
-	def histogramTest(self):
+	def histogramPotiDeviceOn(self):
 		try:
-			plt.hist([100 + v*150/10 for v in self.U[2]], 50, density=1)
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
 			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogram(self):
+		try:
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogramPressureDeviceOn(self):
+		try:
+			plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
+			plt.xlabel("Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Histogramm des Drucks")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
 		except Exception as e:
 			raise e
 
@@ -503,7 +538,7 @@ class Application(tk.Frame):
 		self.updateTimeTable()
 	
 		# test button
-		tk.Button(self, text="Testbutton", command=self.histogramTest).grid(column=0, row=1)
+		tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
 
 	def initParser(self):
 		# start the parser as a toplevel widget
@@ -703,6 +738,8 @@ class Application(tk.Frame):
 		sumPressureOn = 0
 		sumPressureOnCount = 0
 
+		self.turnedOnPressure = []
+
 		# constants
 		U1_volts_per_Bar = 10 / 400 # [V/bar]
 
@@ -724,6 +761,7 @@ class Application(tk.Frame):
 				# calculate sum for average pressure when turned on
 				sumPressureOn += self.U1[i]
 				sumPressureOnCount += 1
+				self.turnedOnPressure.append(self.U1[i])
 
 				# find schwemmbetrieb
 				if i > 0:
@@ -771,7 +809,7 @@ class Application(tk.Frame):
 			plt.plot(p1_bar)
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Druck [bar]")
-			plt.title("Drucksensor, 0-250 bar")
+			plt.title("Drucksensor")
 
 			plt.subplot(212)
 			self.plot_U2()
@@ -797,11 +835,11 @@ class Application(tk.Frame):
 
 	def plot_U3(self):
 		try:
-			p3_bar = [100 + u * 150 / 10 for u in self.U3]
+			p3_bar = [100 + u * 15 for u in self.U3]
 
 			plt.figure(figsize=(2, 1))
 			plt.subplot(211)
-			plt.plot(p3_bar[0:80000])
+			plt.plot(p3_bar[0:1100000])
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Poti setting [bar]")
 			plt.title("Schiebepotentiometer, 100-250 bar")
@@ -809,7 +847,7 @@ class Application(tk.Frame):
 			
 			isOn = [1 if x > 15 else 0 for x in self.U2]
 
-			plt.plot(isOn[0:80000])
+			plt.plot(isOn[0:1100000])
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Ein/Aus [-]")
 			plt.title("Gerät an/aus")
