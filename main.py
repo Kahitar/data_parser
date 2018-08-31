@@ -582,6 +582,7 @@ class Application(tk.Frame):
 		else: # otherwise just set the new file as current file
 			self.file = file
 
+		# change the file label
 		self.setFileLabel(self.file)
 
 		# close the parser
@@ -604,6 +605,7 @@ class Application(tk.Frame):
 		else:
 			self.newFile(selectedFile)
 
+		# change the file label
 		self.setFileLabel(self.file)
 
 		# parse the file
