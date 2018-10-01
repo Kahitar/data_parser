@@ -1,4 +1,3 @@
 files/**/*.txt
-*.todo
 __pycache__/
 .vscode

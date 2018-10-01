@@ -1,0 +1,41 @@
+ ☐ Unittests
+  https://www.youtube.com/watch?v=1Lfv5tUGsn8
+ ☐ Logging
+  https://www.youtube.com/watch?v=g8nQ90Hk328
+ ☐ Zeit
+  https://www.youtube.com/watch?v=RjMbCUpvIgw
+ ☐ Multithreading / Multiprocessing
+  https://www.youtube.com/watch?v=PJ4t2U15ACo&list=PLeo1K3hjS3uub3PRhdoCTY8BxMKSW7RjN
+  https://stackoverflow.com/questions/34764535/why-cant-matplotlib-plot-in-a-different-thread
+ ✔ JSON für geparste Daten @done (18-08-22 21:42)
+ ☐ Parser: Warnung wenn Ausgabedatei schon existiert (oder einfach (1) bennenen)
+ ☐ Datenverarbeiter automatisch öffnen, wenn die Datei noch keine Konfigurations-Infos enthält
+ ☐ Datenverarbeiter kann nur geöffnet werden, wenn eine Datei zum Bearbeiten ausgewählt wurde
+   ☐ Der Button erscheint nur, wenn eine Datei geöffnet wurde
+   ☐ Das Aufrufen des Verarbeiters über die Menüleiste öffnet automatisch den file dialog
+   ☐ "Zur Datenverarbeitung laden" im Parser öffnet den Datenverarbeiter
+ ❑ "Delete parsed files"-Button (oder Menüeintrag?)
+   Muss eine Warnung haben!! (Da die Konfigurations-Daten in den JSON's gespeichert werden
+ ☐ Extra Fenster (über Menü aufrufen) zum parsen von Dateien -> Parser als neue Klasse
+  ❑ Auswahl der Spalten
+  ☐ Messreihe einen Namen geben
+ ☐ Conversion: Check if the conversion parameters make sense and can give a solution
+ ☐ Settings Fenster zum Konfigurieren der Diagramme
+  ✘ Voltzahlen min und max zuweisen, Beschriftung und Einheit auswählen @cancelled(18-08-27 20:41)
+    im data configurator werden zwei Punkte ausgewählt, um die Gerade zu definieren
+  ☐ Ein-/Ausschaltsignal (Spalte) definieren -> als Subplot unter die anderen Diagramme
+  ✔ Bei Diagrammen zwei Voltzahlen definieren für Achsenbeschriftung (z.B. 0V = 0 bar, 12V = 250 bar) @done(18-08-27 20:39)
+    Wird im Data configurator gemacht
+
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+Archive:
+ ✔ Zeit messen mit und ohne progressbar @done (18-08-16 10:24)
+  Mit dem festen Zeitschritt für das Update der bar ist die Zeit mit und ohne bar die gleiche.
+ ✔ Pfeil oder Button zum Übernehmen der neu geparsten Datei @done (18-08-08 21:34)
+ ✔ Parser Fenster schließen, wenn Hauptfenster geschlossen wird @done (18-08-08 21:34)
+ ✔ Bei "Cancel" beim Datei öffnen wieder die alte Datei auswählen @done (18-08-08 14:49)
+ ✔ Vorschau der Datei @done (18-08-08 14:09)
+ ✔ Eigenes Frame zum Parsen einer neuen Datei @done (18-08-08 14:09)
+ ✔ Buttons zum öffnen und parsen einer Datei zusammenführen (für Rohdaten und Datei) @done (18-08-06 22:10)
+ ✔ Wieso resettet N_Poti nicht? @done (18-08-06 18:21)
+ ✔ Bei neu eingelesenen Daten die Tabelle löschen @done (18-08-06 18:20)
