@@ -312,7 +312,7 @@ class Parser(tk.Frame):
 			raise e
 
 		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
-												command=lambda: self.mainApp.setFileToLoad(outFile, True))
+												command=lambda: self.mainApp.setFileToLoad(outFile, False))
 		self.setToLoad.grid(row=20, column=10, sticky="ew")
 		tk.Label(self.parserFrame, text="(Schließt den Parser)", fg="red").grid(row=21,column=10, sticky="ew")
 
@@ -367,14 +367,17 @@ class Parser(tk.Frame):
 						i += 1
 
 				# update progress bar
-				self.load_bar.update(progress, num_lines)
+				self.load_bar.update(progress, num_lines, msg="(Parsing Data)")
 
-			# loop finished, fill progress bar
-			self.load_bar.update(1, 1)
+			# loop finished, fill progress bar except last %
+			self.load_bar.update(99, 100, msg="(Saving Data)")
 
 		# write the dictionary to the output file as JSON
 		with open(outFile, "w") as outFile_obj:
 			json.dump(U, outFile_obj)
+
+		# output file written, fill progress bar
+		self.load_bar.update(1, 1, msg="(Idle)")
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -389,9 +392,14 @@ class Application(tk.Frame):
 		self.createGui()
 
 	def writeData(self, outFile):
+		#
+		self.loadBar.update(1, 1, msg="(Saving data)")
+
 		# write the data dictionary to the output file as JSON
 		with open(outFile, "w") as file:
 			json.dump(self.dataDict, file)
+
+		self.loadBar.update(1, 1, msg="(Idle)")
 
 		try:
 			print("Saved: ", self.dataDict["Spalte0"]["convFunc"])
@@ -698,11 +706,11 @@ class Application(tk.Frame):
 			self.U.append(list(map(float, values["data"])))
 
 			# progress bar
-			self.load_bar.update(i, dicLen)
+			self.load_bar.update(i, dicLen, msg="(Loading Data)")
 			i+=1
 
 		# fill progress bar
-		self.load_bar.update(1, 1)
+		self.load_bar.update(1, 1, msg="(Idle)")
 
 		# <========== temp ==========
 		self.U1 = self.U[0]
@@ -776,10 +784,10 @@ class Application(tk.Frame):
 						potiSwitching = False
 
 			# write progress bar
-			self.load_bar.update(i, len(self.U1))
+			self.load_bar.update(i, len(self.U1), msg="(Calculating)")
 		
 		# loop finished, fill progress bar
-		self.load_bar.update(1, 1)
+		self.load_bar.update(1, 1, msg="(Idle)")
 
 		self.t_ges = valid_lines
 		self.t_on = len(time_on)
@@ -876,7 +884,7 @@ class SimpleTable(tk.Frame):
 
 class SimpleProgressBar(tk.Frame):
 
-	def __init__(self, parent, total=100):
+	def __init__(self, parent, total=100, msg="(Idle)"):
 		tk.Frame.__init__(self, parent)
 
 		self.progressbar = ttk.Progressbar(master=parent, length=200, 
@@ -886,14 +894,18 @@ class SimpleProgressBar(tk.Frame):
 		self.progressLabel = tk.Label(parent, text="0%", width=5)
 		self.progressLabel.grid(column=1, row=0)
 
+		self.messageLabel = tk.Label(parent, text=msg)
+		self.messageLabel.grid(column=2, row=0)
+
 		self.updateTime = 0.005 # ms
 		self.lastUpdate = time.time()
 
-	def update(self, count, total=None):
+	def update(self, count, total=None, msg=""):
 		if count == total:
 			self.progressbar['maximum'] = total
 			self.progressbar['value'] = count
 			self.progressLabel['text'] = "100%"
+			self.messageLabel['text'] = msg
 		elif time.time() - self.lastUpdate > self.updateTime:
 			if total != None:
 				self.progressbar['maximum'] = total
@@ -902,6 +914,7 @@ class SimpleProgressBar(tk.Frame):
 	    	
 			self.progressbar['value'] = count
 			self.progressLabel['text'] = str(percents) + '%'
+			self.messageLabel['text'] = msg
 			self.progressbar.update_idletasks()
 
 			self.lastUpdate = time.time()
