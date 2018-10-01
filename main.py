@@ -20,7 +20,11 @@ def timeit(method):
 			name = kw.get('log_name', method.__name__.upper())
 			kw['log_time'][name] = int((te - ts) * 1000)
 		else:
-			print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
+			dt = (te - ts)
+			if dt > 1:
+				print('%r  %2.2f s' % (method.__name__, dt))
+			else:
+				print('%r  %2.2f ms' % (method.__name__, dt * 1000))
 		return result
 	return timed
 
@@ -193,7 +197,7 @@ class Parser(tk.Frame):
 
 	def close(self):
 		self.master.destroy()
-		#self.mainApp.parser = None # TODO: WHy is this not working?
+		#self.mainApp.parser = None # TODO: Why is this not working?
 
 	def createGui(self):
 
@@ -431,10 +435,45 @@ class Application(tk.Frame):
 		finally:
 			self.master.destroy()
 
-	def histogramTest(self):
+	def histogramPotiDeviceOn(self):
 		try:
-			plt.hist([100 + v*150/10 for v in self.U[2]], 50, density=1)
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
 			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogram(self):
+		try:
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogramPressureDeviceOn(self):
+		try:
+			plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
+			plt.xlabel("Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Histogramm des Drucks")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
 		except Exception as e:
 			raise e
 
@@ -503,11 +542,10 @@ class Application(tk.Frame):
 		self.updateTimeTable()
 	
 		# test button
-		tk.Button(self, text="Testbutton", command=self.histogramTest).grid(column=0, row=1)
+		tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
 
 	def initParser(self):
 		# start the parser as a toplevel widget
-
 		self.parser = Parser(tk.Toplevel(), self)
 		self.parser.mainloop()
 
@@ -522,22 +560,30 @@ class Application(tk.Frame):
 			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self)
 			self.dataConfigurator.mainloop()
 
-	def setFileToLoad(self, file, deleteOldData=False):
-		if not deleteOldData:
-			self.newFile(file)
-		else:
-			self.file = file
-
+	def setFileLabel(self, file):
 		# find the substring indicating the filename without the path
-		label = findFilenameSubstr(self.file)
+		labelText = findFilenameSubstr(file)
 
 		# set the file Label showing the selected file with the previously found substring
 		try:
-			self.fileLabel['text'] = label
+			self.fileLabel['text'] = labelText
 		except UnboundLocalError:
 			raise e
 		except Exception as e:
 			raise e
+
+	def setFileToLoad(self, file, deleteOldData=False):
+		""" loads a new file into memory """
+
+		# if the deleteOldData flag was not set, 
+		# save the data currently in memory to its file
+		if not deleteOldData:
+			self.newFile(file)
+		else: # otherwise just set the new file as current file
+			self.file = file
+
+		# change the file label
+		self.setFileLabel(self.file)
 
 		# close the parser
 		self.parser.close()
@@ -559,16 +605,8 @@ class Application(tk.Frame):
 		else:
 			self.newFile(selectedFile)
 
-		# find the substring indicating the filename without the path
-		label = findFilenameSubstr(self.file)
-
-		# set the file Label showing the selected file with the previously found substring
-		try:
-			self.fileLabel['text'] = label
-		except UnboundLocalError:
-			raise e
-		except Exception as e:
-			raise e
+		# change the file label
+		self.setFileLabel(self.file)
 
 		# parse the file
 		self.loadData()
@@ -636,11 +674,9 @@ class Application(tk.Frame):
 		self.update_idletasks()
 
 	def loadData(self):
-		""" Reads the data from a file into memory """
+		""" Reads the data from a JSON file into memory """
 		try:
-			file = self.file
-
-			if file == '':
+			if self.file == '':
 				raise AttributeError
 		except AttributeError:
 			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen.")
@@ -653,7 +689,7 @@ class Application(tk.Frame):
 
 		self.U = []
 
-		with open(file, "r") as file_obj:
+		with open(self.file, "r") as file_obj:
 			self.dataDict = json.load(file_obj)
 
 		i = 0
@@ -674,18 +710,7 @@ class Application(tk.Frame):
 		self.U3 = self.U[2]
 		#  ========== temp ==========>
 
-		self.t_ges = None
-		self.t_on = None
-		self.t_240bar = None
-		self.t_poti_lowest = None
-		self.t_poti_highest = None
-		self.t_poti_between = None
-		self.t_schwemm = None
-		self.n_poti = None
-		self.p_OnAvg = None
-
-		self.updateTimeTable()
-
+	@timeit
 	def calculateTimes(self):
 
 		valid_lines = len(self.U1)
@@ -703,6 +728,8 @@ class Application(tk.Frame):
 		sumPressureOn = 0
 		sumPressureOnCount = 0
 
+		self.turnedOnPressure = []
+
 		# constants
 		U1_volts_per_Bar = 10 / 400 # [V/bar]
 
@@ -715,19 +742,21 @@ class Application(tk.Frame):
 				turnedOn = True
 				time_on.append(i)
 
-			# device on and highest pressure
-			if turnedOn and self.U1[i] > 6.0:
-				time_highest_pressure.append(i)
-
 			# values when the device is turned on
 			if turnedOn:
+
+				# device on and highest pressure
+				if self.U1[i] > 6.0:
+					time_highest_pressure.append(i)
+
 				# calculate sum for average pressure when turned on
 				sumPressureOn += self.U1[i]
 				sumPressureOnCount += 1
+				self.turnedOnPressure.append(self.U1[i])
 
 				# find schwemmbetrieb
 				if i > 0:
-					if self.U2[i] < limit_schwemm and self.U2[i] == self.U2[i-1]:
+					if self.U1[i] < limit_schwemm and self.U1[i] == self.U1[i-1]:
 						time_schwemm.append(i)
 
 				# evaluate poti position
@@ -738,13 +767,13 @@ class Application(tk.Frame):
 				else: # poti in between the highest and lowest setting
 					time_poti_between.append(i)
 
-			# find all times the poti was changed even when turned off
-			if i > 0:
-				if self.U3[i] != self.U3[i-1]:
-					potiSwitching = True
-				elif potiSwitching:
-					poti_schaltungen += 1
-					potiSwitching = False
+				# find all times the poti was changed even when turned off
+				if i > 0:
+					if self.U3[i] != self.U3[i-1]:
+						potiSwitching = True
+					elif potiSwitching:
+						poti_schaltungen += 1
+						potiSwitching = False
 
 			# write progress bar
 			self.load_bar.update(i, len(self.U1))
@@ -771,7 +800,7 @@ class Application(tk.Frame):
 			plt.plot(p1_bar)
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Druck [bar]")
-			plt.title("Drucksensor, 0-250 bar")
+			plt.title("Drucksensor")
 
 			plt.subplot(212)
 			self.plot_U2()
@@ -797,11 +826,11 @@ class Application(tk.Frame):
 
 	def plot_U3(self):
 		try:
-			p3_bar = [100 + u * 150 / 10 for u in self.U3]
+			p3_bar = [100 + u * 15 for u in self.U3]
 
 			plt.figure(figsize=(2, 1))
 			plt.subplot(211)
-			plt.plot(p3_bar[0:80000])
+			plt.plot(p3_bar[0:1100000])
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Poti setting [bar]")
 			plt.title("Schiebepotentiometer, 100-250 bar")
@@ -809,7 +838,7 @@ class Application(tk.Frame):
 			
 			isOn = [1 if x > 15 else 0 for x in self.U2]
 
-			plt.plot(isOn[0:80000])
+			plt.plot(isOn[0:1100000])
 			plt.xlabel("Zeit [sec]")
 			plt.ylabel("Ein/Aus [-]")
 			plt.title("Gerät an/aus")
