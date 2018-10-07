@@ -78,8 +78,7 @@ class DataConfiguratorRow(tk.Frame):
 		self.y2_UnitLabel.grid(row=3, column=8, sticky="w", pady=5)
 
 		self.Unit_y1 = tk.StringVar(self, value='V')
-		self.om_Unit_y1 = tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C'))
-		self.om_Unit_y1.grid(row=2, column=8, sticky="w", pady=5)
+		tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C')).grid(row=2, column=8, sticky="w", pady=5)
 
 		self.Unit_y1.trace("w", self.setConversionUnit)
 
@@ -146,28 +145,47 @@ class DataConfigurator(tk.Frame):
 		self.configColsFrame.grid(column=0, row=10, rowspan=2)
 
 		""" Data configurator rows """
+		self.setConversionData()
+
+	def setConversionData(self):
 		self.DataConfiguratorRows = []
 		headline = True
 		for i in range(len(self.mainApp.dataDict)):
 			# data configurator rows
-			self.DataConfiguratorRows.append(DataConfiguratorRow(self.configColsFrame, isHeadline=headline, rowNumber=i))
+			self.DataConfiguratorRows.append(DataConfiguratorRow(
+				self.configColsFrame, isHeadline=headline, rowNumber=i))
 			headline = False
-			self.DataConfiguratorRows[i].grid(row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
-			
+			self.DataConfiguratorRows[i].grid(
+				row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
+
 			try:
-				self.DataConfiguratorRows[i].setConversionFunctionParams(self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
-			except TypeError: # TODO: Why do I suddenly get a typeError instead of a keyError? (NoneType object is not subscriptable)
-				self.DataConfiguratorRows[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
+				self.DataConfiguratorRows[i].setConversionFunctionParams(
+					self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+			# TODO: Why do sometimes get a typeError instead of a keyError? (NoneType object is not subscriptable)
+			except TypeError:
+				self.DataConfiguratorRows[i].setConversionFunctionParams(
+					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
 			except KeyError:
-				self.DataConfiguratorRows[i].setConversionFunctionParams({"x1":0,"x2":1,"y1":0,"y2":1})
+				self.DataConfiguratorRows[i].setConversionFunctionParams(
+					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
 			except Exception as e:
 				raise e
-			
+
 			try:
-				self.DataConfiguratorRows[i].nameField.delete(0, len(self.DataConfiguratorRows))
-				self.DataConfiguratorRows[i].nameField.insert(0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
+				self.DataConfiguratorRows[i].nameField.delete(
+					0, len(self.DataConfiguratorRows))
+				self.DataConfiguratorRows[i].nameField.insert(
+					0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
 			except KeyError:
 				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i))
+			except Exception as e:
+				raise e
+
+			try:
+				self.DataConfiguratorRows[i].Unit_y1.set(
+					self.mainApp.dataDict["Spalte"+str(i)]["Unit"])
+			except KeyError:
+				self.DataConfiguratorRows[i].Unit_y1.set("V")
 			except Exception as e:
 				raise e
 
@@ -181,6 +199,7 @@ class DataConfigurator(tk.Frame):
 		for _, value in self.mainApp.dataDict.items():
 			value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
 			value["name"] = self.DataConfiguratorRows[i].nameField.get()
+			value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
 			i += 1
 
 class Parser(tk.Frame):
@@ -222,7 +241,7 @@ class Parser(tk.Frame):
 		self.previewFrame.grid(column=10, row=2)
 
 		""" Loading bar """
-		self.load_bar = SimpleProgressBar(self.statusFrame)
+		self.loadBar = SimpleProgressBar(self.statusFrame)
 
 		""" Buttons and Labels """
 		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen",
@@ -367,17 +386,17 @@ class Parser(tk.Frame):
 						i += 1
 
 				# update progress bar
-				self.load_bar.update(progress, num_lines, msg="(Parsing Data)")
+				self.loadBar.update(progress, num_lines, msg="(Parsing Data)")
 
 			# loop finished, fill progress bar except last %
-			self.load_bar.update(99, 100, msg="(Saving Data)")
+			self.loadBar.update(99, 100, msg="(Saving Data)")
 
 		# write the dictionary to the output file as JSON
 		with open(outFile, "w") as outFile_obj:
 			json.dump(U, outFile_obj)
 
 		# output file written, fill progress bar
-		self.load_bar.update(1, 1, msg="(Idle)")
+		self.loadBar.update(1, 1, msg="(Idle)")
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -392,7 +411,7 @@ class Application(tk.Frame):
 		self.createGui()
 
 	def writeData(self, outFile):
-		#
+		# Set the loading bar message
 		self.loadBar.update(1, 1, msg="(Saving data)")
 
 		# write the data dictionary to the output file as JSON
@@ -402,7 +421,7 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Idle)")
 
 		try:
-			print("Saved: ", self.dataDict["Spalte0"]["convFunc"])
+			print("Saved: ", self.dataDict["Spalte0"]["convFunc"], self.dataDict["Spalte0"]["unit"])
 		except KeyError:
 			print("No conversion values set")
 		except Exception as e:
@@ -517,7 +536,7 @@ class Application(tk.Frame):
 		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
 		""" Loading bar """
-		self.load_bar = SimpleProgressBar(self.statusFrame)
+		self.loadBar = SimpleProgressBar(self.statusFrame)
 
 		""" Buttons and Labels """
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
@@ -706,11 +725,11 @@ class Application(tk.Frame):
 			self.U.append(list(map(float, values["data"])))
 
 			# progress bar
-			self.load_bar.update(i, dicLen, msg="(Loading Data)")
+			self.loadBar.update(i, dicLen, msg="(Loading Data)")
 			i+=1
 
 		# fill progress bar
-		self.load_bar.update(1, 1, msg="(Idle)")
+		self.loadBar.update(1, 1, msg="(Idle)")
 
 		# <========== temp ==========
 		self.U1 = self.U[0]
@@ -784,10 +803,10 @@ class Application(tk.Frame):
 						potiSwitching = False
 
 			# write progress bar
-			self.load_bar.update(i, len(self.U1), msg="(Calculating)")
+			self.loadBar.update(i, len(self.U1), msg="(Calculating)")
 		
 		# loop finished, fill progress bar
-		self.load_bar.update(1, 1, msg="(Idle)")
+		self.loadBar.update(1, 1, msg="(Idle)")
 
 		self.t_ges = valid_lines
 		self.t_on = len(time_on)
