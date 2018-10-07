@@ -2,6 +2,7 @@ Verbesserungen:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
    z.B. wenn eine neue Datei geladen wird ist nicht immer ganz klar, dass die aktuell geladenen Daten zuerst gespeichert werden. Das Programm scheint teilweise sehr lange einzufrieren.
    Zur progress bar wurde eine optionale Message hinzugefügt.
+ ☐ Ladebalken und Status in extra Statusleiste
 
  Bugs:
  ✔ Aktuelle Daten werden nicht gespeichert, wenn eine neue Datei über den parser geladen wird @done (18-10-01 17:18)
