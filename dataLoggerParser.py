@@ -195,7 +195,7 @@ class Parser(tk.Frame):
 
 				newU = [None for x in range(6)]
 				try:
-					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
+					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
 						"\n", "").split("	")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
@@ -221,7 +221,7 @@ class Parser(tk.Frame):
 
 				newU = [None for x in range(6)]
 				try:
-					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
+					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
 						"\n", "").split("	")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")

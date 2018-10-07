@@ -125,8 +125,6 @@ class DataConfigurator(tk.Frame):
 			try:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(
 					self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
-			# TODO: Why do sometimes get a typeError instead of a keyError? (NoneType object is not subscriptable)
-			# Weil conversion function noch nicht gesetzt ist!
 			except TypeError:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(
 					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
