@@ -1,4 +1,8 @@
-Verbesserungen:
+Backend improvements:
+ ☐ Check if data was changed before trying to save data
+  For example with a "dataChanged" variable
+
+User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
    z.B. wenn eine neue Datei geladen wird ist nicht immer ganz klar, dass die aktuell geladenen Daten zuerst gespeichert werden. Das Programm scheint teilweise sehr lange einzufrieren.
    Zur progress bar wurde eine optionale Message hinzugefügt.
@@ -11,3 +15,8 @@ Verbesserungen:
  ☐ Wieso wird der Ladebalken nicht aktualisiert, wenn beim Laden einer neuen Datei die alte Datei gespeichert wird?
    Der Ladebalken sollte "Saving Data" ausgeben. 
  ☐ Changing the conversion unit shouldn't change the layout
+ ✔ DataConfigurator doesn't close nominally when main window is killed @done(18-10-07 13:01)
+   The unit gets saved but the conversion parameters don't
+   The problem was, that the app tried to close it, even though it was already closed.
+   This didn't throw an error (as I expected) but instead only threw an error 
+   in the "getConversionFunctionParams" function and therefore didn't set the convParams correctly

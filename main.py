@@ -58,7 +58,7 @@ class Parser(tk.Frame):
 
 	def close(self):
 		self.master.destroy()
-		#self.mainApp.parser = None # TODO: Why is this not working?
+		self.mainApp.parser = None
 
 	def createGui(self):
 
@@ -205,7 +205,8 @@ class Parser(tk.Frame):
 		
 		num_lines = file_len(inFile)
 		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
-		U = {"Spalte"+str(_): {"data": [], "Unit": "V"} for _ in range(sum(parseColumns))} # dictionary to store 
+		U = {"Spalte"+str(_): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}}
+                    for _ in range(sum(parseColumns))}  # dictionary to store
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
@@ -263,7 +264,7 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Idle)")
 
 		try:
-			print("Saved: ", self.dataDict["Spalte0"]["convFunc"], self.dataDict["Spalte0"]["unit"])
+			print("Saved: ", self.dataDict["Spalte0"]["convFunc"], self.dataDict["Spalte0"]["Unit"])
 		except KeyError:
 			print("No conversion values set")
 		except Exception as e:
@@ -285,7 +286,8 @@ class Application(tk.Frame):
 		# Try to close the dataConfigurator via it's close function.
 		# If that doesn't work, just destroy it
 		try:
-			self.dataConfigurator.close()
+			if self.dataConfigurator != None: # the dataConfigurator is still open
+				self.dataConfigurator.close()
 		except AttributeError:
 			pass
 		except Exception as e:
@@ -351,6 +353,9 @@ class Application(tk.Frame):
 		loaded is saved to the old file"""
 		try:
 			self.writeData(self.file)
+		except AttributeError:
+			# self.file does not exist yet. Therefore there exists no data to save and nothing will be lost.
+			pass
 		except:
 			print("Caution: Couldn't save data file!")
 		self.file = file
