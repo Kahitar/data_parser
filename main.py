@@ -1,245 +1,16 @@
 import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import os
-import time
 import json
-from DataConfigurator import DataConfigurator
-
-FILES_LOCATION = os.getenv('APPDATA') + "\\data_logger"
-if not os.path.isdir(FILES_LOCATION):
-	os.mkdir(FILES_LOCATION)
-
-def timeit(method):
-	""" This function can be used as a decorator to measure a functions execution time """
-	def timed(*args, **kw):
-		ts = time.time()
-		result = method(*args, **kw)
-		te = time.time()
-		if 'log_time' in kw:
-			name = kw.get('log_name', method.__name__.upper())
-			kw['log_time'][name] = int((te - ts) * 1000)
-		else:
-			dt = (te - ts)
-			if dt > 1:
-				print('%r  %2.2f s' % (method.__name__, dt))
-			else:
-				print('%r  %2.2f ms' % (method.__name__, dt * 1000))
-		return result
-	return timed
+import dataConfigurator
+import dataLoggerParser
+import progressBar
+import utility
 
 def main():
 	root = tk.Tk()
 	app = Application(master=root)
 	app.mainloop()
-
-def findFilenameSubstr(filename):
-		# find the substring indicating the filename without the path
-		counter = len(filename) # counter to count the chars of the new directory or file
-		for i, char in enumerate(filename):
-			if char == '/' or char == '\\': # start counting the chars from zero
-				counter = 0
-			elif char == '.': # the substring for the filename was found.
-				return filename[i-counter:i+4] # add everything from the last '/' to the substring
-			else:
-				counter += 1
-
-class Parser(tk.Frame):
-	def __init__(self, master=None, mainApp=None):
-		super().__init__(master)
-
-		self.mainApp = mainApp
-
-		self.grid()
-		self.master.minsize(500, 300)
-		self.master.title("Parser data logger")
-
-		self.createGui()
-
-	def close(self):
-		self.master.destroy()
-		self.mainApp.parser = None
-
-	def createGui(self):
-
-		""" Menu bar """
-		self.menubar = tk.Menu(self)
-		self.master.config(menu=self.menubar)
-
-		self.filemenu = tk.Menu(self.menubar, tearoff=0)
-		self.filemenu.add_command(label="Beenden", command=self.master.destroy)
-		self.menubar.add_cascade(label="Datei", menu=self.filemenu)
-
-		""" Frames """
-		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1, 
-										relief="sunken", width=500, height=300, padx=5, pady=5)
-		self.parserFrame.grid(column=0, row=10)
-		self.parserFrame.grid_propagate(False)
-
-		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=5)
-
-		self.previewFrame = tk.Frame(master=self.parserFrame, borderwidth=1, padx=5, pady=5)
-		self.previewFrame.grid(column=10, row=2)
-
-		""" Loading bar """
-		self.loadBar = SimpleProgressBar(self.statusFrame)
-
-		""" Buttons and Labels """
-		self.openLoggerFileButton = tk.Button(self.parserFrame, text="Rohdatei öffnen",
-											command=self.loadLoggerFile)
-		self.openLoggerFileButton.grid(row=1, column=5, sticky="ew")
-
-		self.openLoggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, 
-											width=40)
-		self.openLoggerFileLabel.grid(row=1, column=10, sticky="w")
-
-		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen",
-												command=self.parseLoggerFile)
-		self.parseLoggerFileButton.grid(row=5, column=5, sticky="ew")
-
-		self.loggerFileLabel = tk.Label(self.parserFrame, text="", borderwidth=0, width=40)
-		self.loggerFileLabel.grid(row=5, column=10, columnspan=3, sticky="w")
-
-	def loadFilePreview(self):
-		self.loadPreviewValues()
-
-		""" preview selection """
-		tk.Label(self.previewFrame, text="Bitte die Spalten zum Parsen auwählen:", fg="red", borderwidth=0
-					).grid(row=1, column=1, columnspan=6, sticky="w", padx=3)
-
-		# preview Zeiten
-		for i in range(3):
-			tk.Label(self.previewFrame, text=str(i+1) + ".", borderwidth=0, width=3
-					).grid(row=5+i, column=1, sticky="ew")
-		ttk.Label(self.previewFrame, text="...", borderwidth=0, width=3
-				).grid(row=8, column=4, sticky="e")
-
-		# preview checkbuttons and values
-		self.columnSelectionVars = []
-		for i in range(6):
-			self.columnSelectionVars.append(tk.IntVar())
-			tk.Checkbutton(self.previewFrame, text="", variable=self.columnSelectionVars[i], 
-							onvalue=1, offvalue=0
-							).grid(row=3, column=i+2)
-
-			tk.Label(self.previewFrame, text="U_" + str(i), borderwidth=0
-						).grid(row=4, column=i+2, sticky="ew", padx=3)
-
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][0]) + " V", 
-						borderwidth=0, width=7
-						).grid(row=5, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][1]) + " V", 
-						borderwidth=0, width=7
-						).grid(row=6, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][2]) + " V", 
-						borderwidth=0, width=7
-						).grid(row=7, column=i+2, sticky="ew")
-
-	def loadLoggerFile(self):
-		# open the file dialog
-		selectedFile = filedialog.askopenfilename(initialdir="files", title="Select file",
-													filetypes=(("txt files","*.txt"),("all files","*.*")))
-		# check if a file was read in
-		if selectedFile == '': # file dialog was canceled
-			return
-		else:
-			self.loggerFile = selectedFile
-			
-		self.focus_force()
-
-		# find the substring indicating the filename without the path
-		label = findFilenameSubstr(self.loggerFile)
-
-		# set the file Label showing the selected file with the previously found substring
-		try:
-			self.openLoggerFileLabel['text'] = label
-		except UnboundLocalError:
-			raise e
-		except Exception as e:
-			raise e
-
-		self.loadFilePreview()
-
-	def parseLoggerFile(self):
-
-		try:
-			outFile = FILES_LOCATION + "\\" + findFilenameSubstr(self.loggerFile[:-4] + '_PYOUTPUT.txt')
-			self.read_datalogger(self.loggerFile, outFile)
-			self.loggerFileLabel['text'] = findFilenameSubstr(outFile)
-		except Exception as e:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
-			self.focus_force()
-			raise e
-
-		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
-												command=lambda: self.mainApp.setFileToLoad(outFile, False))
-		self.setToLoad.grid(row=20, column=10, sticky="ew")
-		tk.Label(self.parserFrame, text="(Schließt den Parser)", fg="red").grid(row=21,column=10, sticky="ew")
-
-	def loadPreviewValues(self):
-		""" Loads the first three rows of the selected file"""
-
-		self.U_preview = [[] for x in range(6)]
-		self.t_preview = []
-
-		with open(self.loggerFile, 'r') as file_obj:
-			for progress, line in enumerate(file_obj):
-
-				if line[0] == ";":
-					continue
-				if progress > 20:
-					break
-
-				newU = [None for x in range(6)]
-				try:
-					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
-				except Exception as e:
-					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
-					print(e)
-
-				for i in range(6):
-					self.U_preview[i].append(newU[i])
-
-	def read_datalogger(self, inFile, outFile):
-		
-		num_lines = file_len(inFile)
-		parseColumns = [a.get() for a in self.columnSelectionVars] # columns to parse are 1, the others 0
-		U = {"Spalte"+str(_): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}}
-                    for _ in range(sum(parseColumns))}  # dictionary to store
-
-		# open input file and parse it
-		with open(inFile, "r") as file_obj:
-			for progress, line in enumerate(file_obj):
-
-				if line[0] == ";":
-					continue
-
-				newU = [None for x in range(6)]
-				try:
-					newDate, counter, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
-				except Exception as e:
-					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
-					print(e)
-
-				i = 0
-				for k, val in enumerate(newU):
-					if parseColumns[k] == 1:
-						U["Spalte"+str(i)]["data"].append(val.replace(",","."))
-						i += 1
-
-				# update progress bar
-				self.loadBar.update(progress, num_lines, msg="(Parsing Data)")
-
-			# loop finished, fill progress bar except last %
-			self.loadBar.update(99, 100, msg="(Saving Data)")
-
-		# write the dictionary to the output file as JSON
-		with open(outFile, "w") as outFile_obj:
-			json.dump(U, outFile_obj)
-
-		# output file written, fill progress bar
-		self.loadBar.update(1, 1, msg="(Idle)")
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -270,7 +41,7 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
-	@timeit
+	@utility.timeit
 	def closeApp(self):
 		# Try to close the dataConfigurator via it's close function.
 		# If that doesn't work, just destroy it
@@ -383,7 +154,7 @@ class Application(tk.Frame):
 		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
 
 		""" Loading bar """
-		self.loadBar = SimpleProgressBar(self.statusFrame)
+		self.loadBar = progressBar.SimpleProgressBar(self.statusFrame)
 
 		""" Buttons and Labels """
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
@@ -420,7 +191,7 @@ class Application(tk.Frame):
 
 	def initParser(self):
 		# start the parser as a toplevel widget
-		self.parser = Parser(tk.Toplevel(), self)
+		self.parser = dataLoggerParser.Parser(master=tk.Toplevel(), mainApp=self)
 		self.parser.mainloop()
 
 	def initDataConfigurator(self):
@@ -431,12 +202,12 @@ class Application(tk.Frame):
 		except AttributeError:
 			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
 		else:
-			self.dataConfigurator = DataConfigurator(tk.Toplevel(), self)
+			self.dataConfigurator = dataConfigurator.DataConfigurator(tk.Toplevel(), self)
 			self.dataConfigurator.mainloop()
 
 	def setFileLabel(self, file):
 		# find the substring indicating the filename without the path
-		labelText = findFilenameSubstr(file)
+		labelText = utility.findFilenameSubstr(file)
 
 		# set the file Label showing the selected file with the previously found substring
 		try:
@@ -474,7 +245,7 @@ class Application(tk.Frame):
 		and loads the data from the file"""
 
 		# open the file dialog
-		selectedFile = filedialog.askopenfilename(initialdir=FILES_LOCATION, title="Select file", 
+		selectedFile = filedialog.askopenfilename(initialdir=utility.FILES_LOCATION, title="Select file", 
 													filetypes=(("txt files","*_PYOUTPUT.txt"),))
 		# check if a file was read in
 		if selectedFile == '': # file dialog was canceled
@@ -587,7 +358,7 @@ class Application(tk.Frame):
 		self.U3 = self.U[2]
 		#  ========== temp ==========>
 
-	@timeit
+	@utility.timeit
 	def calculateTimes(self):
 
 		valid_lines = len(self.U1)
@@ -749,50 +520,5 @@ class SimpleTable(tk.Frame):
     def set(self, row, column, value):
         widget = self._widgets[row][column]
         widget.configure(text=value)
-
-
-class SimpleProgressBar(tk.Frame):
-
-	def __init__(self, parent, total=100, msg="(Idle)"):
-		tk.Frame.__init__(self, parent)
-
-		self.progressbar = ttk.Progressbar(master=parent, length=200, 
-											mode='determinate', maximum=total)
-		self.progressbar.grid(column=0, row=0)
-		
-		self.progressLabel = tk.Label(parent, text="0%", width=5)
-		self.progressLabel.grid(column=1, row=0)
-
-		self.messageLabel = tk.Label(parent, text=msg)
-		self.messageLabel.grid(column=2, row=0)
-
-		self.updateTime = 0.005 # ms
-		self.lastUpdate = time.time()
-
-	def update(self, count, total=None, msg=""):
-		if count == total:
-			self.progressbar['maximum'] = total
-			self.progressbar['value'] = count
-			self.progressLabel['text'] = "100%"
-			self.messageLabel['text'] = msg
-		elif time.time() - self.lastUpdate > self.updateTime:
-			if total != None:
-				self.progressbar['maximum'] = total
-			
-			percents = round(100.0 * count / float(self.progressbar['maximum']), 1)
-	    	
-			self.progressbar['value'] = count
-			self.progressLabel['text'] = str(percents) + '%'
-			self.messageLabel['text'] = msg
-			self.progressbar.update_idletasks()
-
-			self.lastUpdate = time.time()
-
-# length of a file
-def file_len(fname):
-    with open(fname) as f:
-        for i, _ in enumerate(f):
-            pass
-    return i + 1
 
 if __name__ == '__main__': main()
