@@ -459,8 +459,11 @@ class Application(tk.Frame):
 		# change the file label
 		self.setFileLabel(self.file)
 
-		# close the parser
-		self.parser.close()
+		# close the parser # TODO: Let the parser handle this
+		try:
+			self.parser.close()
+		except:
+			pass
 		
 		# parse the file
 		self.loadData()
