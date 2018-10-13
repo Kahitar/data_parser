@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 class TimeDefinitionRow(tk.Frame):
-	_firstInstance = True
 
 	def __init__(self, master):
 		super().__init__(master)
@@ -10,22 +9,15 @@ class TimeDefinitionRow(tk.Frame):
 		self.rows = list()
 		self.rows.append(dict())
 
-		if TimeDefinitionRow._firstInstance:
-			TimeDefinitionRow._firstInstance = False
-
-			# make headline
-			tk.Label(self, text="Name").grid(
-				row=1, column=1, sticky="ew", pady=1)
-			tk.Label(self, text="Bedingung").grid(
-				row=1, column=2, columnspan=5, sticky="ew", pady=1)
-
 		# time name
-		self.name = tk.Entry(self, justify="center", width=15)
-		self.name.grid(row=3, column=1, sticky="w")
+		self.name = tk.Entry(self, justify="center")
+		self.name.grid(row=2, column=0, columnspan=2, sticky="w")
+		# placeholder label
+		tk.Label(self, width=5).grid(row=3, column=0)
 
 		# add condition Button
 		self.addConditionButton = tk.Button(self, text="Bedingung hinzufügen", command=self.addCondition)
-		self.addConditionButton.grid(row=2, column=2, columnspan=5)
+		self.addConditionButton.grid(row=2, column=2, columnspan=3)
 
 		self.addCondition()
 
@@ -40,23 +32,23 @@ class TimeDefinitionRow(tk.Frame):
 		self.rows[len(self.rows)-1]['fromColumn'].trace("w", self.setLogic)
 		self.rows[len(self.rows)-1]['fromColumnMenu'] = tk.OptionMenu(
 			self, self.rows[len(self.rows)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
-		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+1, column=2, sticky="w")
+		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+1, column=1, sticky="w")
 
 		# column comparison
 		self.rows[len(self.rows)-1]['logicOperator'] = tk.StringVar(self, value='>')
 		self.rows[len(self.rows)-1]['logicOperator'].trace("w", self.setLogic)
 		self.rows[len(self.rows)-1]['operatorMenu'] = tk.OptionMenu(
 			self, self.rows[len(self.rows)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
-		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+1, column=3, sticky="w")
+		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+1, column=2, sticky="w")
 
 		self.rows[len(self.rows)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
-		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+1, column=5, sticky="w")
+		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+1, column=3, sticky="w")
 		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
 		self.rows[len(self.rows)-1]['compareValueLabel'].grid(
-							row=len(self.rows)+1, column=6, sticky="w", padx=5)
+							row=len(self.rows)+1, column=4, sticky="w", padx=5)
 
 		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(len(self.rows)-1))
-		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+1, column=9)
+		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+1, column=5)
 
 	def deleteRow(self, rowNum):
 		# remove the specified row from the row list
@@ -64,7 +56,7 @@ class TimeDefinitionRow(tk.Frame):
 			try:
 				value.grid_forget()
 			except AttributeError:
-				# not a tk widget
+				# value is not a tk widget
 				pass
 		del self.rows[rowNum]
 
