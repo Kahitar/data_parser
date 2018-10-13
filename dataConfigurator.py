@@ -7,7 +7,8 @@ class TimeDefinitionRow(tk.Frame):
 	def __init__(self, master):
 		super().__init__(master)
 
-		self.numRows=0
+		self.rows = list()
+		self.rows.append(dict())
 
 		if TimeDefinitionRow._firstInstance:
 			TimeDefinitionRow._firstInstance = False
@@ -15,52 +16,57 @@ class TimeDefinitionRow(tk.Frame):
 			# make headline
 			tk.Label(self, text="Name").grid(
 				row=1, column=1, sticky="ew", pady=1)
-			tk.Label(self, text="Spalte").grid(
-				row=1, column=2, sticky="ew", pady=1)
 			tk.Label(self, text="Bedingung").grid(
-				row=1, column=3, columnspan=3, sticky="ew", pady=1)
+				row=1, column=2, columnspan=5, sticky="ew", pady=1)
 
 		# time name
 		self.name = tk.Entry(self, justify="center", width=15)
-		self.name.grid(row=2, column=1, sticky="w")
+		self.name.grid(row=3, column=1, sticky="w")
 
-		self.addRow()
+		# add condition Button
+		self.addConditionButton = tk.Button(self, text="Bedingung hinzufügen", command=self.addCondition)
+		self.addConditionButton.grid(row=2, column=2, columnspan=5)
+
+		self.addCondition()
 
 	def setLogic(self):
 		pass
 
-	def addRow(self):
-		self.numRows += 1
+	def addCondition(self):
+		self.rows.append(dict())
 
 		# column name
-		self.fromColumn = tk.StringVar(self, value='Spannung')
-		self.fromColumn.trace("w", self.setLogic)
-		tk.OptionMenu(self, self.fromColumn, *('Spannung', 'Spalte1', 'Spalte2')
-		              ).grid(row=self.numRows+1, column=2, sticky="w")
+		self.rows[len(self.rows)-1]['fromColumn'] = tk.StringVar(self, value='Spannung')
+		self.rows[len(self.rows)-1]['fromColumn'].trace("w", self.setLogic)
+		self.rows[len(self.rows)-1]['fromColumnMenu'] = tk.OptionMenu(
+			self, self.rows[len(self.rows)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
+		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+1, column=2, sticky="w")
 
 		# column comparison
-		self.logic = tk.StringVar(self, value='>')
-		self.logic.trace("w", self.setLogic)
-		tk.OptionMenu(self, self.logic, *('>', '≥', '=', '<', '≤')
-		              ).grid(row=self.numRows+1, column=3, sticky="w")
+		self.rows[len(self.rows)-1]['logicOperator'] = tk.StringVar(self, value='>')
+		self.rows[len(self.rows)-1]['logicOperator'].trace("w", self.setLogic)
+		self.rows[len(self.rows)-1]['operatorMenu'] = tk.OptionMenu(
+			self, self.rows[len(self.rows)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
+		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+1, column=3, sticky="w")
 
-		self.condition = tk.Entry(self, width=4, justify="center")
-		self.condition.grid(row=self.numRows+1, column=5, sticky="w")
-		tk.Label(self, text="V").grid(row=self.numRows+1, column=6, sticky="w", padx=5)
+		self.rows[len(self.rows)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
+		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+1, column=5, sticky="w")
+		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
+		self.rows[len(self.rows)-1]['compareValueLabel'].grid(
+							row=len(self.rows)+1, column=6, sticky="w", padx=5)
 
-		# column options # TODO: Add option to change row order
-		#self.moveButton = tk.Button(self, text="md", command=self.moveRowDown)
-		#self.moveButton.grid(row=self.numRows+1, column=7)
+		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(len(self.rows)-1))
+		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+1, column=9)
 
-		self.addRowButton = tk.Button(self, text="+", command=self.addRow)
-		self.addRowButton.grid(row=self.numRows+1, column=8)
-
-		self.deleteRowButton = tk.Button(self, text="X", command=self.deleteRow)
-		self.deleteRowButton.grid(row=self.numRows+1, column=9)
-		
-
-	def deleteRow(self):
-		pass
+	def deleteRow(self, rowNum):
+		# remove the specified row from the row list
+		for _, value in self.rows[rowNum].items():
+			try:
+				value.grid_forget()
+			except AttributeError:
+				# not a tk widget
+				pass
+		del self.rows[rowNum]
 
 class TimesCalculationFrame(tk.Frame):
 	def __init__(self, master):
