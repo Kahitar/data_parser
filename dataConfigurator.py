@@ -1,6 +1,80 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
+class TimeDefinitionRow(tk.Frame):
+	_firstInstance = True
+
+	def __init__(self, master):
+		super().__init__(master)
+
+		self.numRows=0
+
+		if TimeDefinitionRow._firstInstance:
+			TimeDefinitionRow._firstInstance = False
+
+			# make headline
+			tk.Label(self, text="Name").grid(
+				row=1, column=1, sticky="ew", pady=1)
+			tk.Label(self, text="Spalte").grid(
+				row=1, column=2, sticky="ew", pady=1)
+			tk.Label(self, text="Bedingung").grid(
+				row=1, column=3, columnspan=3, sticky="ew", pady=1)
+
+		# time name
+		self.name = tk.Entry(self, justify="center", width=15)
+		self.name.grid(row=2, column=1, sticky="w")
+
+		self.addRow()
+
+	def setLogic(self):
+		pass
+
+	def addRow(self):
+		self.numRows += 1
+
+		# column name
+		self.fromColumn = tk.StringVar(self, value='Spannung')
+		self.fromColumn.trace("w", self.setLogic)
+		tk.OptionMenu(self, self.fromColumn, *('Spannung', 'Spalte1', 'Spalte2')
+		              ).grid(row=self.numRows+1, column=2, sticky="w")
+
+		# column comparison
+		self.logic = tk.StringVar(self, value='>')
+		self.logic.trace("w", self.setLogic)
+		tk.OptionMenu(self, self.logic, *('>', '≥', '=', '<', '≤')
+		              ).grid(row=self.numRows+1, column=3, sticky="w")
+
+		self.condition = tk.Entry(self, width=4, justify="center")
+		self.condition.grid(row=self.numRows+1, column=5, sticky="w")
+		tk.Label(self, text="V").grid(row=self.numRows+1, column=6, sticky="w", padx=5)
+
+		# column options # TODO: Add option to change row order
+		#self.moveButton = tk.Button(self, text="md", command=self.moveRowDown)
+		#self.moveButton.grid(row=self.numRows+1, column=7)
+
+		self.addRowButton = tk.Button(self, text="+", command=self.addRow)
+		self.addRowButton.grid(row=self.numRows+1, column=8)
+
+		self.deleteRowButton = tk.Button(self, text="X", command=self.deleteRow)
+		self.deleteRowButton.grid(row=self.numRows+1, column=9)
+		
+
+	def deleteRow(self):
+		pass
+
+class TimesCalculationFrame(tk.Frame):
+	def __init__(self, master):
+		super().__init__(master)
+
+		tk.Button(self, text="Neue Zeit", command=self.addTimeFrame).grid(column=1)
+		self.addTimeFrame()
+
+	def moveTimeDown(self):
+		pass
+
+	def addTimeFrame(self):
+		TimeDefinitionRow(self).grid(column=1)
+		
 class DataConfiguratorRow(tk.Frame):
 	def __init__(self, master, isHeadline=False, rowNumber=0):
 		super().__init__(master)
@@ -79,7 +153,6 @@ class DataConfiguratorRow(tk.Frame):
 		self.y1.insert(0, conversionDict["y1"])
 		self.y2.insert(0, conversionDict["y2"])
 
-
 class DataConfigurator(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
 		super().__init__(master)
@@ -106,12 +179,19 @@ class DataConfigurator(tk.Frame):
 		""" Frames """
 		self.configColsFrame = tk.LabelFrame(master=self, text="Spalten konfigurieren", borderwidth=1,
                                        relief="sunken", width=500, height=400, padx=5, pady=15)
-		self.configColsFrame.grid(column=0, row=10, rowspan=2)
+		self.configColsFrame.grid(row=10, column=0)
+		self.timesCalculationFrame = tk.LabelFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
+                                        relief="sunken", width=500, height=400, padx=5, pady=15)
+		self.timesCalculationFrame.grid(row=10, column=1)
 
 		""" Data configurator rows """
-		self.setConversionData()
+		self.dataConversionGui()
 
-	def setConversionData(self):
+		""" Time calculations frame """
+		TimesCalculationFrame(self.timesCalculationFrame).grid(
+				row = 1, column = 2, padx = 3, pady = 3, columnspan = 5)
+
+	def dataConversionGui(self):
 		self.DataConfiguratorRows = []
 		headline = True
 		for i in range(len(self.mainApp.dataDict)):
