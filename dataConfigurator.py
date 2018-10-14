@@ -10,22 +10,28 @@ class TimeDefinitionRow(tk.Frame):
 
 		# time name
 		self.name = tk.Entry(self, justify="center")
-		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5)
+		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 		# placeholder label
 		tk.Label(self, width=5).grid(row=3, column=0)
 
 		# add condition Button
 		self.addConditionButton = tk.Button(self, text="Bedingung hinzufügen", command=self.addCondition)
-		self.addConditionButton.grid(row=2, column=2, columnspan=3)
+		self.addConditionButton.grid(row=2, column=2, columnspan=3, pady=5)
+
+		# time delete Button
+		self.timeDeleteButton = tk.Button(self, text="X", command=lambda: self.master.deleteTimeFrame(self))
+		self.timeDeleteButton.grid(row=2, column=5, padx=5, pady=5)
 
 		self.addCondition()
+
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
 
 	def setLogic(self):
 		pass
 
 	def addCondition(self):
 		self.rows[len(self.rows)] = dict()
-		print("Length: ", len(self.rows))
 
 		# column name
 		self.rows[len(self.rows)-1]['fromColumn'] = tk.StringVar(self, value='Spannung')
@@ -46,8 +52,9 @@ class TimeDefinitionRow(tk.Frame):
 		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
 		self.rows[len(self.rows)-1]['compareValueLabel'].grid(
 							row=len(self.rows)+2, column=4, sticky="w", padx=5)
-		idx = len(self.rows)-1
-		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(idx))
+		
+		delIdx = len(self.rows)-1
+		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(delIdx))
 		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+2, column=5)
 
 	def deleteRow(self, rowNum):
@@ -65,13 +72,23 @@ class TimesCalculationFrame(tk.Frame):
 		super().__init__(master)
 
 		tk.Button(self, text="Neue Zeit", command=self.addTimeFrame).grid(column=1)
+		self.timeFrames = list()
 		self.addTimeFrame()
 
 	def moveTimeDown(self):
 		pass
 
 	def addTimeFrame(self):
-		TimeDefinitionRow(self).grid(column=1)
+		newRow = TimeDefinitionRow(self)
+		newRow.grid(column=1)
+		self.timeFrames.append(newRow)
+
+	def deleteTimeFrame(self, delObj):
+		for i, obj in enumerate(self.timeFrames):
+			if obj == delObj:
+				obj.grid_forget()
+				del self.timeFrames[i]
+				return
 		
 class DataConfiguratorRow(tk.Frame):
 	def __init__(self, master, isHeadline=False, rowNumber=0):
