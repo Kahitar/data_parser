@@ -11,6 +11,7 @@ User experience:
  ☐ Make the loading bar move when not idle and unknown progress
  
  Bugs:
+ ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition
  ✔ TimeDefinition's delete Button seems to remove always the last line @done(18-10-14 12:03)
    command=lambda: self.deleteRow(len(self.rows)-1) doesn't work like expected. the input to the lambda function 
    sis changingin according to the len of the array at the time the lambda function is called

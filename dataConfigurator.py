@@ -10,17 +10,17 @@ class TimeDefinitionRow(tk.Frame):
 
 		# time name
 		self.name = tk.Entry(self, justify="center")
-		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=5)
+		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=(15,0))
 		# placeholder label
 		tk.Label(self, width=5).grid(row=3, column=0)
 
 		# add condition Button
 		self.addConditionButton = tk.Button(self, text="Bedingung hinzufügen", command=self.addCondition)
-		self.addConditionButton.grid(row=2, column=2, columnspan=3, pady=5)
+		self.addConditionButton.grid(row=2, column=2, columnspan=3, pady=(15,0))
 
 		# time delete Button
-		self.timeDeleteButton = tk.Button(self, text="X", command=lambda: self.master.deleteTimeFrame(self))
-		self.timeDeleteButton.grid(row=2, column=5, padx=5, pady=5)
+		self.timeDeleteButton = tk.Button(self, fg="red", text="X", command=lambda: self.master.deleteTimeFrame(self))
+		self.timeDeleteButton.grid(row=2, column=5, padx=5, pady=(15,0))
 
 		self.addCondition()
 
@@ -38,20 +38,19 @@ class TimeDefinitionRow(tk.Frame):
 		self.rows[len(self.rows)-1]['fromColumn'].trace("w", self.setLogic)
 		self.rows[len(self.rows)-1]['fromColumnMenu'] = tk.OptionMenu(
 			self, self.rows[len(self.rows)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
-		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+2, column=1, sticky="w")
+		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+2, column=1)
 
 		# column comparison
 		self.rows[len(self.rows)-1]['logicOperator'] = tk.StringVar(self, value='>')
 		self.rows[len(self.rows)-1]['logicOperator'].trace("w", self.setLogic)
 		self.rows[len(self.rows)-1]['operatorMenu'] = tk.OptionMenu(
 			self, self.rows[len(self.rows)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
-		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+2, column=2, sticky="w")
+		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+2, column=2)
 
 		self.rows[len(self.rows)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
-		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+2, column=3, sticky="w")
+		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+2, column=3)
 		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
-		self.rows[len(self.rows)-1]['compareValueLabel'].grid(
-							row=len(self.rows)+2, column=4, sticky="w", padx=5)
+		self.rows[len(self.rows)-1]['compareValueLabel'].grid(row=len(self.rows)+2, column=4, padx=5)
 		
 		delIdx = len(self.rows)-1
 		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(delIdx))
@@ -97,39 +96,38 @@ class DataConfiguratorRow(tk.Frame):
 		# headline
 		if isHeadline:
 			tk.Label(self, text="Spalte").grid(
-				row=1, column=1, sticky="ew", padx=3, pady=3)
+				row=1, column=1, padx=3, pady=3)
 			tk.Label(self, text="Name").grid(
-				row=1, column=3, sticky="ew", padx=3, pady=3)
+				row=1, column=3, padx=3, pady=3)
 			tk.Label(self, text="Umrechnung").grid(
-				row=1, column=5, columnspan=3, sticky="ew", padx=3, pady=3)
+				row=1, column=5, columnspan=3, padx=3, pady=3)
 			tk.Label(self, text="Einheit").grid(
-				row=1, column=8, sticky="ew", padx=3, pady=3)
+				row=1, column=8, padx=3, pady=3)
 
 		# row number label
-		tk.Label(self, text=str(rowNumber)).grid(row=2, column=1, padx=20, pady=3)
+		tk.Label(self, text=str(rowNumber)).grid(row=2, column=1, padx=20)
 
 		# name field
 		self.nameField = tk.Entry(self)
-		self.nameField.grid(row=2, column=3, padx=3, pady=3)
+		self.nameField.grid(row=2, column=3, padx=3)
 
 		# conversion Fields
 		self.x1 = tk.Entry(self, width=4, justify="center")
-		self.x1.grid(row=2, column=5, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V = ").grid(row=2, column=6, sticky="w", pady=5)
+		self.x1.grid(row=2, column=5, padx=3)
+		tk.Label(self, text="V = ").grid(row=2, column=6)
 		self.y1 = tk.Entry(self, width=4, justify="center")
-		self.y1.grid(row=2, column=7, sticky="w", padx=3, pady=3)
+		self.y1.grid(row=2, column=7, padx=3)
 
 		self.x2 = tk.Entry(self, width=4, justify="center")
-		self.x2.grid(row=3, column=5, sticky="w", padx=3, pady=3)
-		tk.Label(self, text="V =").grid(row=3, column=6, sticky="w", pady=5)
+		self.x2.grid(row=3, column=5, padx=3)
+		tk.Label(self, text="V =").grid(row=3, column=6)
 		self.y2 = tk.Entry(self, width=4, justify="center")
-		self.y2.grid(row=3, column=7, sticky="w", padx=3, pady=3)
-		self.y2_UnitLabel = tk.Label(self, text="V")
-		self.y2_UnitLabel.grid(row=3, column=8, sticky="w", pady=5)
+		self.y2.grid(row=3, column=7, padx=3)
+		self.y2_UnitLabel = tk.Label(self, text="V", width=8, anchor="w") # The width of this label is important to keep the gui aligned
+		self.y2_UnitLabel.grid(row=3, column=8)
 
 		self.Unit_y1 = tk.StringVar(self, value='V')
-		tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C')
-		              ).grid(row=2, column=8, sticky="w", pady=5)
+		tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C')).grid(row=2, column=8, sticky="w")
 
 		self.Unit_y1.trace("w", self.setConversionUnit)
 
@@ -194,10 +192,10 @@ class DataConfigurator(tk.Frame):
 		""" Frames """
 		self.configColsFrame = tk.LabelFrame(master=self, text="Spalten konfigurieren", borderwidth=1,
                                        relief="sunken", width=500, height=400, padx=5, pady=15)
-		self.configColsFrame.grid(row=10, column=0)
+		self.configColsFrame.grid(row=10, column=0, sticky="NW")
 		self.timesCalculationFrame = tk.LabelFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
                                         relief="sunken", width=500, height=400, padx=5, pady=15)
-		self.timesCalculationFrame.grid(row=10, column=1)
+		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
 
 		""" Data configurator rows """
 		self.dataConversionGui()
