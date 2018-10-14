@@ -11,7 +11,7 @@ class TimeDefinitionRow(tk.Frame):
 
 		# time name
 		self.name = tk.Entry(self, justify="center")
-		self.name.grid(row=2, column=0, columnspan=2, sticky="w")
+		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5)
 		# placeholder label
 		tk.Label(self, width=5).grid(row=3, column=0)
 
@@ -46,8 +46,8 @@ class TimeDefinitionRow(tk.Frame):
 		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
 		self.rows[len(self.rows)-1]['compareValueLabel'].grid(
 							row=len(self.rows)+1, column=4, sticky="w", padx=5)
-
-		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(len(self.rows)-1))
+		idx = len(self.rows)-1
+		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(idx))
 		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+1, column=5)
 
 	def deleteRow(self, rowNum):
@@ -58,7 +58,7 @@ class TimeDefinitionRow(tk.Frame):
 			except AttributeError:
 				# value is not a tk widget
 				pass
-		del self.rows[rowNum]
+		#del self.rows[rowNum] # TODO: How can I delete old entries out of the list?
 
 class TimesCalculationFrame(tk.Frame):
 	def __init__(self, master):
