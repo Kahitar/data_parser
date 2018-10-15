@@ -3,8 +3,9 @@ from tkinter import ttk, messagebox, filedialog
 
 class TimeDefinition(tk.Frame):
 
-	def __init__(self, master):
+	def __init__(self, master, columnDefinitions):
 		super().__init__(master)
+		self.columnDefinitions = columnDefinitions
 
 		self.conditions = dict()
 
@@ -42,29 +43,40 @@ class TimeDefinition(tk.Frame):
                        							 })
 		return returnValue
 
+	def changeUnit(self, index):
+		currName = self.conditions[index]['fromColumn'].get()
+
+		for col in self.columnDefinitions:
+			if col["name"] == currName:
+				self.conditions[index]['unitLabel']['text'] = col["unit"]
+
 	def addCondition(self):
+
+		dataColNames = tuple(col["name"] for col in self.columnDefinitions)
+
 		self.conditions[len(self.conditions)] = dict()
+		currIndex = len(self.conditions)-1
 
 		# column name
-		self.conditions[len(self.conditions)-1]['fromColumn'] = tk.StringVar(self, value='Spannung')
-		self.conditions[len(self.conditions)-1]['fromColumnMenu'] = tk.OptionMenu(
-			self, self.conditions[len(self.conditions)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
-		self.conditions[len(self.conditions)-1]['fromColumnMenu'].grid(row=len(self.conditions)+2, column=1)
+		self.conditions[currIndex]['fromColumn'] = tk.StringVar(self, value='Spannung')
+		self.conditions[currIndex]['fromColumn'].trace_add('write', callback=lambda a, b, c: self.changeUnit(currIndex))
+		self.conditions[currIndex]['fromColumnMenu'] = tk.OptionMenu(
+			self, self.conditions[currIndex]['fromColumn'], *dataColNames)
+		self.conditions[currIndex]['fromColumnMenu'].grid(row=len(self.conditions)+2, column=1)
 
 		# column comparison
-		self.conditions[len(self.conditions)-1]['logicOperator'] = tk.StringVar(self, value='>')
-		self.conditions[len(self.conditions)-1]['operatorMenu'] = tk.OptionMenu(
-			self, self.conditions[len(self.conditions)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
-		self.conditions[len(self.conditions)-1]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
+		self.conditions[currIndex]['logicOperator'] = tk.StringVar(self, value='>')
+		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(
+			self, self.conditions[currIndex]['logicOperator'], *('>', '≥', '=', '<', '≤'))
+		self.conditions[currIndex]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
-		self.conditions[len(self.conditions)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
-		self.conditions[len(self.conditions)-1]['compareValue'].grid(row=len(self.conditions)+2, column=3)
-		self.conditions[len(self.conditions)-1]['compareValueLabel'] = tk.Label(self, text="V")
-		self.conditions[len(self.conditions)-1]['compareValueLabel'].grid(row=len(self.conditions)+2, column=4, padx=5)
+		self.conditions[currIndex]['compareValue'] = tk.Entry(self, width=10, justify="center")
+		self.conditions[currIndex]['compareValue'].grid(row=len(self.conditions)+2, column=3)
+		self.conditions[currIndex]['unitLabel'] = tk.Label(self, text="V")
+		self.conditions[currIndex]['unitLabel'].grid(row=len(self.conditions)+2, column=4, padx=5)
 		
-		delIdx = len(self.conditions)-1
-		self.conditions[len(self.conditions)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(delIdx))
-		self.conditions[len(self.conditions)-1]['deleteRowButton'].grid(row=len(self.conditions)+2, column=5)
+		self.conditions[currIndex]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(currIndex))
+		self.conditions[currIndex]['deleteRowButton'].grid(row=currIndex+3, column=5)
 
 	def deleteRow(self, rowNum):
 		# remove the specified row from the row list
@@ -88,7 +100,7 @@ class TimesCalculationFrame(tk.Frame):
 		pass
 
 	def addTimeFrame(self):
-		newRow = TimeDefinition(self)
+		newRow = TimeDefinition(self, self.master.master.getDataColumnDefinitions())
 		newRow.grid(column=1)
 		self.timeFrames.append(newRow)
 
@@ -188,6 +200,16 @@ class DataConfigurator(tk.Frame):
 		self.master.title("Daten konfigurieren")
 
 		self.createGui()
+
+	def getDataColumnDefinitions(self):
+		""" Returns a list with dicts holding name and unit of each data column """
+
+		result = list()
+
+		for row in self.DataConfiguratorRows:
+			result.append({'name': row.nameField.get(), 'unit': row.Unit_y1.get()})
+		
+		return result
 
 	def createGui(self):
 		""" Menu bar """

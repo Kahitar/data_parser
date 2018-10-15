@@ -1,6 +1,8 @@
 Backend improvements:
  ☐ Check if data was changed before trying to save data
   For example with a "dataChanged" variable
+ ☐ Pass the dict containing all information to all classes
+  or make the data cache work
 
 User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
@@ -9,6 +11,7 @@ User experience:
  ☐ Ladebalken und Status in extra Statusleiste
  ☐ Automatische Zeitenberechnung
  ☐ Make the loading bar move when not idle and unknown progress
+ ☐ Connect conditions with logical operators ("and", "or")
  
  Bugs:
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition
