@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
-class TimeDefinitionRow(tk.Frame):
+class TimeDefinition(tk.Frame):
 
 	def __init__(self, master):
 		super().__init__(master)
 
-		self.rows = dict()
+		self.conditions = dict()
 
 		# time name
 		self.name = tk.Entry(self, justify="center")
@@ -24,47 +24,57 @@ class TimeDefinitionRow(tk.Frame):
 
 		self.addCondition()
 
+		tk.Button(self, text="test", command=lambda: print(self.getTimeDefinition())).grid()
+
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
 
-	def setLogic(self):
-		pass
+	def getTimeDefinition(self):
+		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
+		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <compareValue>}, {<...>}]} possibly repeated and 
+		connected with a comparison operator """
+
+		returnValue = {self.name.get(): list()}
+		for _, value in self.conditions.items():
+			returnValue[self.name.get()].append({'column': 	value['fromColumn'].get(),
+                        						 'operator': value['logicOperator'].get(),
+                        						 'comparator': value['compareValue'].get()
+                       							 })
+		return returnValue
 
 	def addCondition(self):
-		self.rows[len(self.rows)] = dict()
+		self.conditions[len(self.conditions)] = dict()
 
 		# column name
-		self.rows[len(self.rows)-1]['fromColumn'] = tk.StringVar(self, value='Spannung')
-		self.rows[len(self.rows)-1]['fromColumn'].trace("w", self.setLogic)
-		self.rows[len(self.rows)-1]['fromColumnMenu'] = tk.OptionMenu(
-			self, self.rows[len(self.rows)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
-		self.rows[len(self.rows)-1]['fromColumnMenu'].grid(row=len(self.rows)+2, column=1)
+		self.conditions[len(self.conditions)-1]['fromColumn'] = tk.StringVar(self, value='Spannung')
+		self.conditions[len(self.conditions)-1]['fromColumnMenu'] = tk.OptionMenu(
+			self, self.conditions[len(self.conditions)-1]['fromColumn'], *('Spannung', 'Spalte1', 'Spalte2'))
+		self.conditions[len(self.conditions)-1]['fromColumnMenu'].grid(row=len(self.conditions)+2, column=1)
 
 		# column comparison
-		self.rows[len(self.rows)-1]['logicOperator'] = tk.StringVar(self, value='>')
-		self.rows[len(self.rows)-1]['logicOperator'].trace("w", self.setLogic)
-		self.rows[len(self.rows)-1]['operatorMenu'] = tk.OptionMenu(
-			self, self.rows[len(self.rows)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
-		self.rows[len(self.rows)-1]['operatorMenu'].grid(row=len(self.rows)+2, column=2)
+		self.conditions[len(self.conditions)-1]['logicOperator'] = tk.StringVar(self, value='>')
+		self.conditions[len(self.conditions)-1]['operatorMenu'] = tk.OptionMenu(
+			self, self.conditions[len(self.conditions)-1]['logicOperator'], *('>', '≥', '=', '<', '≤'))
+		self.conditions[len(self.conditions)-1]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
-		self.rows[len(self.rows)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
-		self.rows[len(self.rows)-1]['compareValue'].grid(row=len(self.rows)+2, column=3)
-		self.rows[len(self.rows)-1]['compareValueLabel'] = tk.Label(self, text="V")
-		self.rows[len(self.rows)-1]['compareValueLabel'].grid(row=len(self.rows)+2, column=4, padx=5)
+		self.conditions[len(self.conditions)-1]['compareValue'] = tk.Entry(self, width=10, justify="center")
+		self.conditions[len(self.conditions)-1]['compareValue'].grid(row=len(self.conditions)+2, column=3)
+		self.conditions[len(self.conditions)-1]['compareValueLabel'] = tk.Label(self, text="V")
+		self.conditions[len(self.conditions)-1]['compareValueLabel'].grid(row=len(self.conditions)+2, column=4, padx=5)
 		
-		delIdx = len(self.rows)-1
-		self.rows[len(self.rows)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(delIdx))
-		self.rows[len(self.rows)-1]['deleteRowButton'].grid(row=len(self.rows)+2, column=5)
+		delIdx = len(self.conditions)-1
+		self.conditions[len(self.conditions)-1]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(delIdx))
+		self.conditions[len(self.conditions)-1]['deleteRowButton'].grid(row=len(self.conditions)+2, column=5)
 
 	def deleteRow(self, rowNum):
 		# remove the specified row from the row list
-		for _, value in self.rows[rowNum].items():
+		for _, value in self.conditions[rowNum].items():
 			try:
 				value.grid_forget()
 			except AttributeError:
 				# value is not a tk widget
 				pass
-		del self.rows[rowNum]
+		del self.conditions[rowNum]
 
 class TimesCalculationFrame(tk.Frame):
 	def __init__(self, master):
@@ -78,7 +88,7 @@ class TimesCalculationFrame(tk.Frame):
 		pass
 
 	def addTimeFrame(self):
-		newRow = TimeDefinitionRow(self)
+		newRow = TimeDefinition(self)
 		newRow.grid(column=1)
 		self.timeFrames.append(newRow)
 
