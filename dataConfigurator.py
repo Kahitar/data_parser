@@ -25,23 +25,8 @@ class TimeDefinition(tk.Frame):
 
 		self.addCondition()
 
-		tk.Button(self, text="test", command=lambda: print(self.getTimeDefinition())).grid()
-
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
-
-	def getTimeDefinition(self):
-		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
-		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <compareValue>}, {<...>}]} possibly repeated and 
-		connected with a comparison operator """
-
-		returnValue = {self.name.get(): list()}
-		for _, value in self.conditions.items():
-			returnValue[self.name.get()].append({'column': 	value['fromColumn'].get(),
-                        						 'operator': value['logicOperator'].get(),
-                        						 'comparator': value['compareValue'].get()
-                       							 })
-		return returnValue
 
 	def changeUnit(self, index):
 		currName = self.conditions[index]['fromColumn'].get()
@@ -88,19 +73,31 @@ class TimeDefinition(tk.Frame):
 				pass
 		del self.conditions[rowNum]
 
-class TimesCalculationFrame(tk.Frame):
-	def __init__(self, master):
-		super().__init__(master)
+class TimesCalculationFrame(tk.LabelFrame):
+	def __init__(self, master, **kw):
+		super().__init__(master, kw)
 
 		tk.Button(self, text="Neue Zeit", command=self.addTimeFrame).grid(column=1)
 		self.timeFrames = list()
 		self.addTimeFrame()
 
-	def moveTimeDown(self):
-		pass
+	def getTimeDefinitions(self):
+		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
+		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <compareValue>}, {<...>}]} possibly repeated and 
+		connected with a comparison operator """
+
+		returnValue = dict()
+		for time in self.timeFrames:
+			returnValue[time.name.get()] = list()
+			for _, value in time.conditions.items():
+				returnValue[time.name.get()].append({'column': 	value['fromColumn'].get(),
+											'operator': value['logicOperator'].get(),
+											'comparator': value['compareValue'].get()
+											})
+		return returnValue
 
 	def addTimeFrame(self):
-		newRow = TimeDefinition(self, self.master.master.getDataColumnDefinitions())
+		newRow = TimeDefinition(self, self.master.getDataColumnDefinitions())
 		newRow.grid(column=1)
 		self.timeFrames.append(newRow)
 
@@ -225,18 +222,24 @@ class DataConfigurator(tk.Frame):
 		self.configColsFrame = tk.LabelFrame(master=self, text="Spalten konfigurieren", borderwidth=1,
                                        relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.configColsFrame.grid(row=10, column=0, sticky="NW")
-		self.timesCalculationFrame = tk.LabelFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
-                                        relief="sunken", width=500, height=400, padx=5, pady=15)
-		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
 
 		""" Data configurator rows """
-		self.dataConversionGui()
+		self.constructDataConversionGui()
 
 		""" Time calculations frame """
-		TimesCalculationFrame(self.timesCalculationFrame).grid(
-				row = 1, column = 2, padx = 3, pady = 3, columnspan = 5)
+		self.timesCalculationFrame = TimesCalculationFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
+                                        relief="sunken", width=500, height=400, padx=5, pady=15)
+		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
+		#TimesCalculationFrame(self.timesCalculationFrame).grid(row = 1, column = 2, padx = 3, pady = 3, columnspan = 5)
 
-	def dataConversionGui(self):
+	def constructTimeDefinitionsGui(self):
+		""" constructs the time definitions gui including entering the values
+		safed in the self.mainApp.dataDict["TimeDefinitions"] dictionary. """
+
+		#see constructDataConversionGui()
+		pass
+
+	def constructDataConversionGui(self):
 		self.DataConfiguratorRows = []
 		headline = True
 		for i in range(len(self.mainApp.dataDict["DataColumns"])):
@@ -289,6 +292,7 @@ class DataConfigurator(tk.Frame):
 			value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
 			value["name"] = self.DataConfiguratorRows[i].nameField.get()
 			value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
-
-			# safe time definition data
 			i += 1
+
+		# safe time definition data
+		self.mainApp.dataDict["TimeDefinitions"] = self.timesCalculationFrame.getTimeDefinitions()
