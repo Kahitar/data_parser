@@ -239,7 +239,7 @@ class DataConfigurator(tk.Frame):
 	def dataConversionGui(self):
 		self.DataConfiguratorRows = []
 		headline = True
-		for i in range(len(self.mainApp.dataDict)):
+		for i in range(len(self.mainApp.dataDict["DataColumns"])):
 			# data configurator rows
 			self.DataConfiguratorRows.append(DataConfiguratorRow(
 				self.configColsFrame, isHeadline=headline, rowNumber=i))
@@ -249,7 +249,7 @@ class DataConfigurator(tk.Frame):
 
 			try:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(
-					self.mainApp.dataDict["Spalte"+str(i)]["convFunc"])
+					self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["convFunc"])
 			except TypeError:
 				self.DataConfiguratorRows[i].setConversionFunctionParams(
 					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
@@ -263,7 +263,7 @@ class DataConfigurator(tk.Frame):
 				self.DataConfiguratorRows[i].nameField.delete(
 					0, len(self.DataConfiguratorRows))
 				self.DataConfiguratorRows[i].nameField.insert(
-					0, self.mainApp.dataDict["Spalte"+str(i)]["name"])
+					0, self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["name"])
 			except KeyError:
 				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i))
 			except Exception as e:
@@ -271,7 +271,7 @@ class DataConfigurator(tk.Frame):
 
 			try:
 				self.DataConfiguratorRows[i].Unit_y1.set(
-					self.mainApp.dataDict["Spalte"+str(i)]["Unit"])
+					self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["Unit"])
 			except KeyError:
 				self.DataConfiguratorRows[i].Unit_y1.set("V")
 			except Exception as e:
@@ -284,8 +284,11 @@ class DataConfigurator(tk.Frame):
 
 	def safeConfigData(self):
 		i = 0
-		for _, value in self.mainApp.dataDict.items():
+		for _, value in self.mainApp.dataDict["DataColumns"].items():
+			# safe conversion data
 			value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
 			value["name"] = self.DataConfiguratorRows[i].nameField.get()
 			value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
+
+			# safe time definition data
 			i += 1

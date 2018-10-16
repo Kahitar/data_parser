@@ -35,7 +35,7 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Idle)")
 
 		try:
-			print("Saved: ", self.dataDict["Spalte0"]["convFunc"], self.dataDict["Spalte0"]["Unit"])
+			print("Saved: ", self.dataDict["DataColumns"]["Spalte0"]["convFunc"], self.dataDict["DataColumns"]["Spalte0"]["Unit"])
 		except KeyError:
 			print("No conversion values set")
 		except Exception as e:
@@ -341,8 +341,8 @@ class Application(tk.Frame):
 			self.dataDict = json.load(file_obj)
 
 		i = 0
-		dicLen = len(self.dataDict) # for progress bar
-		for _, values in self.dataDict.items():
+		dicLen = len(self.dataDict["DataColumns"]) # for progress bar
+		for _, values in self.dataDict["DataColumns"].items():
 			self.U.append(list(map(float, values["data"])))
 
 			# progress bar

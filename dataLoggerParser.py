@@ -209,8 +209,9 @@ class Parser(tk.Frame):
 		num_lines = utility.file_len(inFile)
 		# columns to parse are 1, the others 0
 		parseColumns = [a.get() for a in self.columnSelectionVars]
-		U = {"Spalte"+str(_): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}}
-                    for _ in range(sum(parseColumns))}  # dictionary to store
+		U = {"DataColumns": dict()}
+		U["DataColumns"] = {"Spalte"+str(i): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
+							for i in range(sum(parseColumns))}  # dictionary to store
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
@@ -230,7 +231,7 @@ class Parser(tk.Frame):
 				i = 0
 				for k, val in enumerate(newU):
 					if parseColumns[k] == 1:
-						U["Spalte"+str(i)]["data"].append(val.replace(",", "."))
+						U["DataColumns"]["Spalte"+str(i)]["data"].append(val.replace(",", "."))
 						i += 1
 
 				# update progress bar
