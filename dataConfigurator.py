@@ -162,7 +162,7 @@ class DataConfiguratorRow(tk.Frame):
 		self.y2_UnitLabel.grid(row=3, column=8)
 
 		self.Unit_y1 = tk.StringVar(self, value='V')
-		tk.OptionMenu(self, self.Unit_y1, *('V', 'bar', '°C')).grid(row=2, column=8, sticky="w")
+		tk.OptionMenu(self, self.Unit_y1, *('V', 'A', 'bar', 'l/h', '°C')).grid(row=2, column=8, sticky="w")
 
 		self.Unit_y1.trace("w", self.setConversionUnit)
 
