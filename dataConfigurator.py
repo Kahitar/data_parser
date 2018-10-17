@@ -99,7 +99,7 @@ class TimesCalculationFrame(tk.LabelFrame):
 
 	def getTimeDefinitions(self):
 		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
-		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <comparator>}, {<...>}]} possibly repeated and 
+		format: <TODO: update this> {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <comparator>}, {<...>}]} possibly repeated and 
 		connected with a comparison operator """
 
 		returnValue = dict()

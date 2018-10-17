@@ -219,8 +219,8 @@ class Application(tk.Frame):
 		# parse the file
 		self.loadData()
 
-	# aktualisiert die Zeiten-Tabelle und zeigt diese an. Ausführen über Button.
-	def showTimes(self): 
+	def showTimes(self):
+		""" Refreshes the time-table (or renders it). Function run through button """
 		try:
 			self.calculateTimes()
 		except AttributeError:
@@ -240,44 +240,6 @@ class Application(tk.Frame):
 		self.table.set(0,0,"Zeit")
 		self.table.set(0,1,"Wert")
 
-		self.table.set(1,0,"Gerät an")
-		try:
-			self.table.set(1,1,"{0:.2f} h".format(self.t_on/60/60))
-		except:
-			self.table.set(1,1,"{0:} h".format('----'))
-		self.table.set(2,0,"p > 240bar")
-		try:
-			self.table.set(2,1,"{0:.2f} h".format(self.t_240bar/60/60))
-		except:
-			self.table.set(2,1,"{0:} h".format('----'))
-		self.table.set(3,0,"Schwemm")
-		try:
-			self.table.set(3,1,"{0:.2f} h".format(self.t_schwemm/60/60))
-		except:
-			self.table.set(3,1,"{0:} h".format('----'))
-		self.table.set(4,0,"Poti 100V")
-		try:
-			self.table.set(4,1,"{0:.2f} h".format(self.t_poti_lowest/60/60))
-		except:
-			self.table.set(4,1,"{0:} h".format('----'))
-		self.table.set(5,0,"Poti 250V")
-		try:
-			self.table.set(5,1,"{0:.2f} h".format(self.t_poti_highest/60/60))
-		except:
-			self.table.set(5,1,"{0:} h".format('----'))
-		self.table.set(6,0,"Poti mitte")
-		try:
-			self.table.set(6,1,"{0:.2f} h".format(self.t_poti_between/60/60))
-		except:
-			self.table.set(6,1,"{0:} h".format('----'))
-		self.table.set(7,0,"N Poti")
-		try:
-			if self.n_poti == None:
-				self.table.set(7,1,'----')
-			else:
-				self.table.set(7,1,self.n_poti)
-		except:
-			self.table.set(7,1,'----')
 
 		self.update_idletasks()
 
@@ -295,7 +257,7 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
-		self.U = []
+		self.data = []
 
 		with open(self.file, "r") as file_obj:
 			self.dataDict = json.load(file_obj)
@@ -303,7 +265,7 @@ class Application(tk.Frame):
 		i = 0
 		dicLen = len(self.dataDict["DataColumns"]) # for progress bar
 		for _, values in self.dataDict["DataColumns"].items():
-			self.U.append(list(map(float, values["data"])))
+			self.data.append(list(map(float, values["data"])))
 
 			# progress bar
 			self.loadBar.update(i, dicLen, msg="(Loading Data)")
@@ -313,91 +275,41 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Idle)")
 
 		# <========== temp ==========
-		self.U1 = self.U[0]
-		self.U2 = self.U[1]
-		self.U3 = self.U[2]
+		self.U1 = self.data[0]
+		self.U2 = self.data[1]
+		self.U3 = self.data[2]
 		#  ========== temp ==========>
+
+	def findColumnData(self, columnName, index):
+		""" returns the data from the dataColumn with the specified name and index"""
+
+		self.dataDict["TimeDefintions"]
+
+	def evaluateExpression(self, expression):
+		""" {"column": "1", "operator": ">", "comparator": "0.1"} 
+		{"TimeDefinitions": {"Gerät an/aus": [{"column": "Spannung", "operator": ">", "comparator": "0.1"}]}} """
+		
+		return eval(expression["columnData"]+expression["operator"]+expression["comparator"])
 
 	@utility.timeit
 	def calculateTimes(self):
 
-		valid_lines = len(self.U1)
+		valid_lines = len(self.data[0])
 
-		limit_schwemm = 2.0
-		# variables to evaluate data
-		time_on = []
-		time_highest_pressure = []
-		time_poti_lowest = []
-		time_poti_highest = []
-		time_poti_between = []
-		time_schwemm = []
-		poti_schaltungen = 0
-		potiSwitching = False
-		sumPressureOn = 0
-		sumPressureOnCount = 0
-
-		self.turnedOnPressure = []
-
-		# constants
-		U1_volts_per_Bar = 10 / 400 # [V/bar]
+		# construct list of times. format: [{"name": "Gerät an/aus", "occurence": [1, 2, 10, 11, 12], "Wert": 5}]
+		times = [{"name": name, "occurence": [], "value": 0} for name,_ in self.dataDict["TimeDefinitions"]] 
 
 		# evaluate data
-		for i in range(len(self.U1)):
+		for i in range(len(self.data[0])):
 
-			turnedOn = False
-			# count time device on
-			if self.U2[i] > 20:
-				turnedOn = True
-				time_on.append(i)
-
-			# values when the device is turned on
-			if turnedOn:
-
-				# device on and highest pressure
-				if self.U1[i] > 6.0:
-					time_highest_pressure.append(i)
-
-				# calculate sum for average pressure when turned on
-				sumPressureOn += self.U1[i]
-				sumPressureOnCount += 1
-				self.turnedOnPressure.append(self.U1[i])
-
-				# find schwemmbetrieb
-				if i > 0:
-					if self.U1[i] < limit_schwemm and self.U1[i] == self.U1[i-1]:
-						time_schwemm.append(i)
-
-				# evaluate poti position
-				if self.U3[i] < 0.5: # poti on lowest setting when turned on
-					time_poti_lowest.append(i)
-				elif self.U3[i] > 9.5: # poti on highest setting when turned on
-					time_poti_highest.append(i)
-				else: # poti in between the highest and lowest setting
-					time_poti_between.append(i)
-
-				# find all times the poti was changed even when turned off
-				if i > 0:
-					if self.U3[i] != self.U3[i-1]:
-						potiSwitching = True
-					elif potiSwitching:
-						poti_schaltungen += 1
-						potiSwitching = False
+			for timeDef in self.dataDict["TimeDefinitions"]:
+				pass #times[0]
 
 			# write progress bar
 			self.loadBar.update(i, len(self.U1), msg="(Calculating)")
 		
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
-
-		self.t_ges = valid_lines
-		self.t_on = len(time_on)
-		self.t_240bar = len(time_highest_pressure)
-		self.t_poti_lowest = len(time_poti_lowest)
-		self.t_poti_highest = len(time_poti_highest)
-		self.t_poti_between = len(time_poti_between)
-		self.t_schwemm = len(time_schwemm)
-		self.n_poti = poti_schaltungen
-		self.p_OnAvg = sumPressureOn / sumPressureOnCount / U1_volts_per_Bar
 
 	def plot_U1(self):
 		try:
