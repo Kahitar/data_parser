@@ -12,6 +12,7 @@ User experience:
  ☐ Automatische Zeitenberechnung
  ☐ Make the loading bar move when not idle and unknown progress
  ☐ Connect conditions with logical operators ("and", "or")
+ ☐ Write an update function for the data Configurator window to update when changes are made
  
  Bugs:
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition

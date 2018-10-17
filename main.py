@@ -27,7 +27,6 @@ class Application(tk.Frame):
 		self.setFileToLoad("C:\\Users\\Niklas Acer\\AppData\\Roaming\\data_logger\\20170208_Gerät1_KDL1_21274_PYOUTPUT.txt")
 		self.initDataConfigurator()
 
-
 	def writeData(self, outFile):
 		# Set the loading bar message
 		self.loadBar.update(1, 1, msg="(Saving data)")
@@ -242,7 +241,6 @@ class Application(tk.Frame):
 		
 		# parse the file
 		self.loadData()
-	
 
 	def loadFile(self):
 		""" Opens the file dialog to ask for a new file to load

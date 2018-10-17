@@ -3,15 +3,17 @@ from tkinter import ttk, messagebox, filedialog
 
 class TimeDefinition(tk.Frame):
 
-	def __init__(self, master, columnDefinitions):
+	def __init__(self, master, name, conditions, dataColumnDefinitions):
 		super().__init__(master)
-		self.columnDefinitions = columnDefinitions
+		self.dataColumnDefinitions = dataColumnDefinitions
 
 		self.conditions = dict()
 
 		# time name
 		self.name = tk.Entry(self, justify="center")
+		self.name.insert(0, name)
 		self.name.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=(15,0))
+
 		# placeholder label
 		tk.Label(self, width=5).grid(row=3, column=0)
 
@@ -23,41 +25,46 @@ class TimeDefinition(tk.Frame):
 		self.timeDeleteButton = tk.Button(self, fg="red", text="X", command=lambda: self.master.deleteTimeFrame(self))
 		self.timeDeleteButton.grid(row=2, column=5, padx=5, pady=(15,0))
 
-		self.addCondition()
+		# add all specified conditions
+		if conditions:
+			for condition in conditions:
+				self.addCondition(condition)
 
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
 
-	def changeUnit(self, index):
-		currName = self.conditions[index]['fromColumn'].get()
+	def changeConditionUnit(self, index):
+		currName = self.conditions[index]['column'].get()
 
-		for col in self.columnDefinitions:
+		for col in self.dataColumnDefinitions:
 			if col["name"] == currName:
 				self.conditions[index]['unitLabel']['text'] = col["unit"]
 
-	def addCondition(self):
-
-		dataColNames = tuple(col["name"] for col in self.columnDefinitions)
+	def addCondition(self, condition=False):
+		""" condition format: {"column": "Spannung", "operator": ">", "comparator": ""} """
+		
+		dataColumnNames = tuple(col["name"] for col in self.dataColumnDefinitions)
 
 		self.conditions[len(self.conditions)] = dict()
 		currIndex = len(self.conditions)-1
 
 		# column name
-		self.conditions[currIndex]['fromColumn'] = tk.StringVar(self, value='Spannung')
-		self.conditions[currIndex]['fromColumn'].trace_add('write', callback=lambda a, b, c: self.changeUnit(currIndex))
-		self.conditions[currIndex]['fromColumnMenu'] = tk.OptionMenu(
-			self, self.conditions[currIndex]['fromColumn'], *dataColNames)
-		self.conditions[currIndex]['fromColumnMenu'].grid(row=len(self.conditions)+2, column=1)
+		self.conditions[currIndex]['column'] = tk.StringVar(self, value=condition["column"] if condition else dataColumnNames[0])
+		self.conditions[currIndex]['column'].trace_add('write', callback=lambda a, b, c: self.changeConditionUnit(currIndex))
+		self.conditions[currIndex]['columnMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['column'], *dataColumnNames)
+		self.conditions[currIndex]['columnMenu'].grid(row=len(self.conditions)+2, column=1)
 
 		# column comparison
-		self.conditions[currIndex]['logicOperator'] = tk.StringVar(self, value='>')
-		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(
-			self, self.conditions[currIndex]['logicOperator'], *('>', '≥', '=', '<', '≤'))
+		self.conditions[currIndex]['operator'] = tk.StringVar(
+			self, value=condition["operator"] if condition else '>')
+		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['operator'], *('>', '≥', '=', '≤', '<'))
 		self.conditions[currIndex]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
-		self.conditions[currIndex]['compareValue'] = tk.Entry(self, width=10, justify="center")
-		self.conditions[currIndex]['compareValue'].grid(row=len(self.conditions)+2, column=3)
-		self.conditions[currIndex]['unitLabel'] = tk.Label(self, text="V")
+		self.conditions[currIndex]['comparator'] = tk.Entry(self, width=10, justify="center")
+		self.conditions[currIndex]['comparator'].insert(0, condition["comparator"] if condition else '')
+		self.conditions[currIndex]['comparator'].grid(row=len(self.conditions)+2, column=3)
+		self.conditions[currIndex]['unitLabel'] = tk.Label(self, text="")
+		self.changeConditionUnit(currIndex)
 		self.conditions[currIndex]['unitLabel'].grid(row=len(self.conditions)+2, column=4, padx=5)
 		
 		self.conditions[currIndex]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(currIndex))
@@ -79,25 +86,34 @@ class TimesCalculationFrame(tk.LabelFrame):
 
 		tk.Button(self, text="Neue Zeit", command=self.addTimeFrame).grid(column=1)
 		self.timeFrames = list()
-		self.addTimeFrame()
+		#self.addTimeFrame()
+
+	def setTimeDefinitions(self, timeDefinitions):
+		""" sets the time definition from the main data dict """
+		""" timeDefinitions format: {"": [{"column": "Spannung", "operator": ">", "comparator": ""}]} """
+
+		# iterate through time definitions
+		for timeName, timeDef in timeDefinitions.items():
+			# add a time frame for the current time definition
+			self.addTimeFrame(name=timeName, conditions=timeDef)
 
 	def getTimeDefinitions(self):
 		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
-		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <compareValue>}, {<...>}]} possibly repeated and 
+		format: {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <comparator>}, {<...>}]} possibly repeated and 
 		connected with a comparison operator """
 
 		returnValue = dict()
 		for time in self.timeFrames:
 			returnValue[time.name.get()] = list()
 			for _, value in time.conditions.items():
-				returnValue[time.name.get()].append({'column': 	value['fromColumn'].get(),
-											'operator': value['logicOperator'].get(),
-											'comparator': value['compareValue'].get()
+				returnValue[time.name.get()].append({'column': 	value['column'].get(),
+											'operator': value['operator'].get(),
+											'comparator': value['comparator'].get()
 											})
 		return returnValue
 
-	def addTimeFrame(self):
-		newRow = TimeDefinition(self, self.master.getDataColumnDefinitions())
+	def addTimeFrame(self, name="", conditions=None):
+		newRow = TimeDefinition(self, name, conditions, self.master.getDataColumnDefinitions())
 		newRow.grid(column=1)
 		self.timeFrames.append(newRow)
 
@@ -230,13 +246,13 @@ class DataConfigurator(tk.Frame):
 		self.timesCalculationFrame = TimesCalculationFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
                                         relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
-		#TimesCalculationFrame(self.timesCalculationFrame).grid(row = 1, column = 2, padx = 3, pady = 3, columnspan = 5)
+		self.timesCalculationFrame.setTimeDefinitions(self.mainApp.dataDict["TimeDefinitions"])
 
 	def constructTimeDefinitionsGui(self):
 		""" constructs the time definitions gui including entering the values
 		safed in the self.mainApp.dataDict["TimeDefinitions"] dictionary. """
 
-		#see constructDataConversionGui()
+		
 		pass
 
 	def constructDataConversionGui(self):
