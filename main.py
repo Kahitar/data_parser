@@ -24,8 +24,8 @@ class Application(tk.Frame):
 
 		self.createGui()
 
-		self.setFileToLoad("C:\\Users\\Niklas Acer\\AppData\\Roaming\\data_logger\\20170208_Gerät1_KDL1_21274_PYOUTPUT.txt")
-		self.initDataConfigurator()
+		#self.setFileToLoad("C:\\Users\\Niklas Acer\\AppData\\Roaming\\data_logger\\20170208_Gerät1_KDL1_21274_PYOUTPUT.txt")
+		#self.initDataConfigurator()
 
 	def writeData(self, outFile):
 		# Set the loading bar message
@@ -145,7 +145,7 @@ class Application(tk.Frame):
 		""" Table """ 
 		self.table = SimpleTable(self.dataFrame, 8, 2)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
-		self.updateTimeTable()
+		#self.updateTimeTable()
 	
 		# test button
 		tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
@@ -226,7 +226,7 @@ class Application(tk.Frame):
 		except AttributeError:
 			messagebox.showinfo("Error", "Bitte zuerst Daten einlesen!")
 		except Exception as e:
-			print(e)
+			raise e
 		else:
 			try:
 				self.updateTimeTable()
@@ -237,9 +237,16 @@ class Application(tk.Frame):
 				print(e)
 
 	def updateTimeTable(self):
+		""" times = {"Gerät an/aus": {"occurence": [], "sum": 0}} """
+
 		self.table.set(0,0,"Zeit")
 		self.table.set(0,1,"Wert")
 
+		i = 0
+		for key, value in self.times.items():
+			self.table.set(i+1,0,key)
+			self.table.set(i+1,1,value["sum"])
+			i += 1
 
 		self.update_idletasks()
 
@@ -280,33 +287,58 @@ class Application(tk.Frame):
 		self.U3 = self.data[2]
 		#  ========== temp ==========>
 
-	def findColumnData(self, columnName, index):
-		""" returns the data from the dataColumn with the specified name and index"""
-
-		self.dataDict["TimeDefintions"]
-
 	def evaluateExpression(self, expression):
-		""" {"column": "1", "operator": ">", "comparator": "0.1"} 
-		{"TimeDefinitions": {"Gerät an/aus": [{"column": "Spannung", "operator": ">", "comparator": "0.1"}]}} """
+		""" {"columnData": 1, "operator": ">", "comparator": 0.1} """
+
+		d = expression
+		d["columnData"] = float(d["columnData"])
+		d["comparator"] = float(d["comparator"])
 		
-		return eval(expression["columnData"]+expression["operator"]+expression["comparator"])
+		return eval("columnData" + d["operator"] + "comparator", d)
 
 	@utility.timeit
 	def calculateTimes(self):
 
-		valid_lines = len(self.data[0])
-
 		# construct list of times. format: [{"name": "Gerät an/aus", "occurence": [1, 2, 10, 11, 12], "Wert": 5}]
-		times = [{"name": name, "occurence": [], "value": 0} for name,_ in self.dataDict["TimeDefinitions"]] 
-
+		self.times = {name: {"occurence": [], "sum": 0} for name,_ in self.dataDict["TimeDefinitions"].items()} 
+		""" times = {"Gerät an/aus": {"occurence": [], "sum": 0} """
+		""" {"TimeDefinitions": {"Gerät an/aus": [{"column": "Spannung", "operator": ">", "comparator": "0.1"}]}} """
+		""" {"DataColumns": {"Spalte0": {"name": "Spannung", "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}, "data": ["0.03","0.1"]}}} """
+		
 		# evaluate data
 		for i in range(len(self.data[0])):
 
-			for timeDef in self.dataDict["TimeDefinitions"]:
-				pass #times[0]
+			conditionsSatisfied = True
+
+			# iterate through the time definitions
+			for timeDef, conditions in self.dataDict["TimeDefinitions"].items():
+				# iterate through the conditions for the current time
+				for condition in conditions:
+					# iterate through data columns and find the data needed for the current condition
+					for colKey, dataColumn in self.dataDict["DataColumns"].items():
+						# check if the current column matches the column needed for a condition
+						if dataColumn["name"] == condition["column"]:
+							# the data needed for the condition
+							dataPoint = float(dataColumn["data"][i]) # TODO: apply conversion Function
+							operator = condition["operator"]
+							comparator = float(condition["comparator"])
+
+							# construct expression
+							expression = {"columnData": dataPoint, "operator": operator, "comparator": comparator}
+
+							# check if the data fullfills the condition
+							conditionsSatisfied = conditionsSatisfied and self.evaluateExpression(expression)
+							
+					if not conditionsSatisfied:
+						break
+				if conditionsSatisfied:
+					self.times[timeDef]["occurence"].append(i)
+					self.times[timeDef]["sum"] += 1
+
+			print(self.times)
 
 			# write progress bar
-			self.loadBar.update(i, len(self.U1), msg="(Calculating)")
+			self.loadBar.update(i, len(self.data[0]), msg="(Calculating)")
 		
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")

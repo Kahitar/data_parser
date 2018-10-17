@@ -57,7 +57,7 @@ class TimeDefinition(tk.Frame):
 		# column comparison
 		self.conditions[currIndex]['operator'] = tk.StringVar(
 			self, value=condition["operator"] if condition else '>')
-		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['operator'], *('>', '≥', '=', '≤', '<'))
+		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['operator'], *('>', '>=', '==', '<=', '<'))
 		self.conditions[currIndex]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
 		self.conditions[currIndex]['comparator'] = tk.Entry(self, width=10, justify="center")
