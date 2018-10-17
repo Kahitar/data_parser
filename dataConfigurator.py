@@ -90,7 +90,7 @@ class TimesCalculationFrame(tk.LabelFrame):
 
 	def setTimeDefinitions(self, timeDefinitions):
 		""" sets the time definition from the main data dict """
-		""" timeDefinitions format: {"": [{"column": "Spannung", "operator": ">", "comparator": ""}]} """
+		""" timeDefinitions format: {"<name>": [{"column": "Spannung", "operator": ">", "comparator": ""}]} """
 
 		# iterate through time definitions
 		for timeName, timeDef in timeDefinitions.items():
@@ -247,13 +247,6 @@ class DataConfigurator(tk.Frame):
                                         relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
 		self.timesCalculationFrame.setTimeDefinitions(self.mainApp.dataDict["TimeDefinitions"])
-
-	def constructTimeDefinitionsGui(self):
-		""" constructs the time definitions gui including entering the values
-		safed in the self.mainApp.dataDict["TimeDefinitions"] dictionary. """
-
-		
-		pass
 
 	def constructDataConversionGui(self):
 		self.DataConfiguratorRows = []

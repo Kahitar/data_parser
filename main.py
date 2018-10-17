@@ -80,48 +80,6 @@ class Application(tk.Frame):
 		finally:
 			self.master.destroy()
 
-	def histogramPotiDeviceOn(self):
-		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
-			plt.xlabel("Sollwert Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Poti Setting")
-			plt.grid(True)
-
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
-
-	def histogram(self):
-		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
-			plt.xlabel("Sollwert Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Poti Setting")
-			plt.grid(True)
-
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
-
-	def histogramPressureDeviceOn(self):
-		try:
-			plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
-			plt.xlabel("Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Histogramm des Drucks")
-			plt.grid(True)
-
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
-
 	def newFile(self, file):
 		""" Sets a new JSON file and makes sure that data currently
 		loaded is saved to the old file"""
@@ -499,6 +457,48 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 
+	
+	def histogramPotiDeviceOn(self):
+		try:
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogram(self):
+		try:
+			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.xlabel("Sollwert Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Poti Setting")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
+
+	def histogramPressureDeviceOn(self):
+		try:
+			plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
+			plt.xlabel("Druck [bar]")
+			plt.ylabel("Sekunden [s]")
+			plt.title("Histogramm des Drucks")
+			plt.grid(True)
+
+			plt.show()
+		except AttributeError:
+			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+		except Exception as e:
+			raise e
 
 class SimpleTable(tk.Frame):
     def __init__(self, parent, rows=10, columns=2):
