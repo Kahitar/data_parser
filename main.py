@@ -24,9 +24,6 @@ class Application(tk.Frame):
 
 		self.createGui()
 
-		#self.setFileToLoad("C:\\Users\\Niklas Acer\\AppData\\Roaming\\data_logger\\20170208_Gerät1_KDL1_21274_PYOUTPUT.txt")
-		#self.initDataConfigurator()
-
 	def writeData(self, outFile):
 		# Set the loading bar message
 		self.loadBar.update(1, 1, msg="(Saving data)")
@@ -281,12 +278,6 @@ class Application(tk.Frame):
 		# fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
 
-		# <========== temp ==========
-		self.U1 = self.data[0]
-		self.U2 = self.data[1]
-		self.U3 = self.data[2]
-		#  ========== temp ==========>
-
 	def evaluateExpression(self, expression):
 		""" {"columnData": 1, "operator": ">", "comparator": 0.1} """
 
@@ -318,7 +309,7 @@ class Application(tk.Frame):
 						# check if the current column matches the column needed for a condition
 						if dataColumn["name"] == condition["column"]:
 							# the data needed for the condition
-							dataPoint = float(dataColumn["data"][i+1]) # TODO: apply conversion Function
+							dataPoint = float(dataColumn["data"][i]) # TODO: apply conversion Function
 							operator = condition["operator"]
 							comparator = float(condition["comparator"])
 
@@ -345,7 +336,7 @@ class Application(tk.Frame):
 
 	def plot_U1(self):
 		try:
-			p1_bar = [u * 400 / 10 for u in self.U1]
+			p1_bar = [u * 400 / 10 for u in self.data[0]]
 
 			plt.figure(figsize=(2, 1))
 			plt.subplot(211)
@@ -364,7 +355,7 @@ class Application(tk.Frame):
 
 	def plot_U2(self):
 		try:
-			isOn = [1 if x > 15 else 0 for x in self.U2]
+			isOn = [1 if x > 15 else 0 for x in self.data[1]]
 
 			plt.plot(isOn)
 			plt.xlabel("Zeit [sec]")
@@ -378,7 +369,7 @@ class Application(tk.Frame):
 
 	def plot_U3(self):
 		try:
-			p3_bar = [100 + u * 15 for u in self.U3]
+			p3_bar = [100 + u * 15 for u in self.data[2]]
 
 			plt.figure(figsize=(2, 1))
 			plt.subplot(211)
@@ -388,7 +379,7 @@ class Application(tk.Frame):
 			plt.title("Schiebepotentiometer, 100-250 bar")
 			plt.subplot(212)
 			
-			isOn = [1 if x > 15 else 0 for x in self.U2]
+			isOn = [1 if x > 15 else 0 for x in self.data[1]]
 
 			plt.plot(isOn[0:1100000])
 			plt.xlabel("Zeit [sec]")
@@ -400,11 +391,10 @@ class Application(tk.Frame):
 			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			raise e
-
 	
 	def histogramPotiDeviceOn(self):
 		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
 			plt.xlabel("Sollwert Druck [bar]")
 			plt.ylabel("Sekunden [s]")
 			plt.title("Poti Setting")
@@ -418,7 +408,7 @@ class Application(tk.Frame):
 
 	def histogram(self):
 		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.U3) if self.U2[i]>10], bins=50)
+			plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
 			plt.xlabel("Sollwert Druck [bar]")
 			plt.ylabel("Sekunden [s]")
 			plt.title("Poti Setting")
@@ -462,9 +452,19 @@ class SimpleTable(tk.Frame):
         for column in range(columns):
             self.grid_columnconfigure(column, weight=1)
 
-
     def set(self, row, column, value):
-        widget = self._widgets[row][column]
-        widget.configure(text=value)
+
+		# check if the cell already exists
+        if len(self._widgets) > row:
+            if len(self._widgets[row]) > column:
+				# cell exists, change text
+                widget = self._widgets[row][column]
+                widget.configure(text=value)
+            else:
+				# create new column
+                pass
+        else:
+			# create new row
+            pass
 
 if __name__ == '__main__': main()

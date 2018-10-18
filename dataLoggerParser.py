@@ -41,7 +41,6 @@ import progressBar
 import json
 import utility
 
-
 class Parser(tk.Frame):
 	def __init__(self, master=None, mainApp=None):
 		super().__init__(master)
@@ -136,9 +135,15 @@ class Parser(tk.Frame):
             ).grid(row=7, column=i+2, sticky="ew")
 
 	def loadLoggerFile(self):
+		import os
+		if not os.path.isdir("files"):
+			initialDir = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+		else:
+			initialDir = "files"
+
 		# open the file dialog
-		selectedFile = filedialog.askopenfilename(initialdir="files", title="Select file",
-                                            filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
+		selectedFile = filedialog.askopenfilename(initialdir=initialDir, title="Select file",
+                                            	  filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
 		# check if a file was read in
 		if selectedFile == '':  # file dialog was canceled
 			return
@@ -195,11 +200,12 @@ class Parser(tk.Frame):
 
 				newU = [None for x in range(6)]
 				try:
-					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
-						"\n", "").split("	")
+					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+				except ValueError as e:
+					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte sicherstellen, dass die richtige Datei ausgewählt wurde!\n\nDieser Fehler kann insbesondere auftreten, wenn eine von diesem Programm als Output generierte Datei versucht wird zu parsen.")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
-					print(e)
+					raise e
 
 				for i in range(6):
 					self.U_preview[i].append(newU[i])
@@ -222,11 +228,12 @@ class Parser(tk.Frame):
 
 				newU = [None for x in range(6)]
 				try:
-					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace(
-						"\n", "").split("	")
+					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+				except ValueError as e:
+					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte sicherstellen, dass die richtige Datei ausgewählt wurde!\n\nDieser Fehler kann insbesondere auftreten, wenn eine von diesem Programm als Output generierte Datei versucht wird zu parsen.")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
-					print(e)
+					raise e
 
 				i = 0
 				for k, val in enumerate(newU):
