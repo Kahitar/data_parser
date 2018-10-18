@@ -308,10 +308,9 @@ class Application(tk.Frame):
 		# evaluate data
 		for i in range(len(self.data[0])):
 
-			conditionsSatisfied = True
-
 			# iterate through the time definitions
 			for timeDef, conditions in self.dataDict["TimeDefinitions"].items():
+				conditionsSatisfied = True
 				# iterate through the conditions for the current time
 				for condition in conditions:
 					# iterate through data columns and find the data needed for the current condition
@@ -319,7 +318,7 @@ class Application(tk.Frame):
 						# check if the current column matches the column needed for a condition
 						if dataColumn["name"] == condition["column"]:
 							# the data needed for the condition
-							dataPoint = float(dataColumn["data"][i]) # TODO: apply conversion Function
+							dataPoint = float(dataColumn["data"][i+1]) # TODO: apply conversion Function
 							operator = condition["operator"]
 							comparator = float(condition["comparator"])
 
@@ -332,14 +331,15 @@ class Application(tk.Frame):
 					if not conditionsSatisfied:
 						break
 				if conditionsSatisfied:
-					self.times[timeDef]["occurence"].append(i)
+					self.times[timeDef]["occurence"].append(i+1)
 					self.times[timeDef]["sum"] += 1
-
-			print(self.times)
 
 			# write progress bar
 			self.loadBar.update(i, len(self.data[0]), msg="(Calculating)")
 		
+		# DEBUG
+		print(self.times)
+
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
 
