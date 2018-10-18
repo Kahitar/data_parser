@@ -140,7 +140,7 @@ class DataConfiguratorRow(tk.Frame):
 				row=1, column=8, padx=3, pady=3)
 
 		# row number label
-		tk.Label(self, text=str(rowNumber)).grid(row=2, column=1, padx=20)
+		tk.Label(self, text=str(rowNumber+1)).grid(row=2, column=1, padx=20)
 
 		# name field
 		self.nameField = tk.Entry(self)
@@ -277,7 +277,7 @@ class DataConfigurator(tk.Frame):
 				self.DataConfiguratorRows[i].nameField.insert(
 					0, self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["name"])
 			except KeyError:
-				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i))
+				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i+1))
 			except Exception as e:
 				raise e
 
