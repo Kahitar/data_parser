@@ -140,9 +140,10 @@ class Application(tk.Frame):
 		self.U1_plotButton.grid(row=0, column=4, padx=3)
 
 		""" Table """ 
-		self.table = SimpleTable(self.dataFrame, 8, 2)
+		self.table = SimpleTable(self.dataFrame)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
-		#self.updateTimeTable()
+		self.table.set(0,0,"Zeit")
+		self.table.set(0,1,"Sekunden")
 	
 		# test button
 		tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
@@ -225,16 +226,11 @@ class Application(tk.Frame):
 		except Exception as e:
 			raise e
 		else:
-			try:
-				self.updateTimeTable()
-			except Exception as e:	
-				self.table = SimpleTable(self.dataFrame, 8, 2)
-				self.table.grid()
-				self.updateTimeTable()
-				print(e)
+			self.updateTimeTable()
 
 	def updateTimeTable(self):
 		""" times = {"Gerät an/aus": {"occurence": [], "sum": 0}} """
+		# TODO: Delete rows where the corresponding time has been deleted
 
 		self.table.set(0,0,"Zeit")
 		self.table.set(0,1,"Wert")
@@ -327,9 +323,6 @@ class Application(tk.Frame):
 
 			# write progress bar
 			self.loadBar.update(i, len(self.data[0]), msg="(Calculating)")
-		
-		# DEBUG
-		print(self.times)
 
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
@@ -435,36 +428,52 @@ class Application(tk.Frame):
 			raise e
 
 class SimpleTable(tk.Frame):
-    def __init__(self, parent, rows=10, columns=2):
-        # use black background so it "peeks through" to 
-        # form grid lines
-        tk.Frame.__init__(self, parent, background="black")
-        self._widgets = []
-        for row in range(rows):
-            current_row = []
-            for column in range(columns):
-                label = tk.Label(self, text="%s/%s" % (row, column), 
-                                 borderwidth=0, width=10)
-                label.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
-                current_row.append(label)
-            self._widgets.append(current_row)
+	def __init__(self, parent):
+		# use black background so it "peeks through" to 
+		# form grid lines
+		tk.Frame.__init__(self, parent, background="black")
+		self._widgets = []
 
-        for column in range(columns):
-            self.grid_columnconfigure(column, weight=1)
+	def addRow(self):
+		current_row = []
+		numRows = len(self._widgets)
+		try:
+			numCols = len(self._widgets[0])
+		except:
+			numCols = 1
 
-    def set(self, row, column, value):
+		for column in range(numCols):
+			label = tk.Label(self, text="", borderwidth=0, width=10)
+			label.grid(row=numRows, column=column, sticky="nsew", padx=1, pady=1)
+			current_row.append(label)
+		self._widgets.append(current_row)
+
+	def addColumn(self):
+		numRows = len(self._widgets)
+		try:
+			numCols = len(self._widgets[0])
+		except:
+			numCols = 1
+
+		for row in range(numRows):
+			label = tk.Label(self, text="", borderwidth=0, width=10)
+			label.grid(row=row, column=numCols, sticky="nsew", padx=1, pady=1)
+			self._widgets[row].append(label)
+
+	def set(self, row, column, value):
 
 		# check if the cell already exists
-        if len(self._widgets) > row:
-            if len(self._widgets[row]) > column:
+		if len(self._widgets) > row:
+			if len(self._widgets[0]) > column:
 				# cell exists, change text
-                widget = self._widgets[row][column]
-                widget.configure(text=value)
-            else:
-				# create new column
-                pass
-        else:
-			# create new row
-            pass
+				widget = self._widgets[row][column]
+				widget["text"] = value
+				widget.config(width=len(str(value)))
+			else:
+				self.addColumn()
+				self.set(row, column, value)
+		else:
+			self.addRow()
+			self.set(row, column, value)
 
 if __name__ == '__main__': main()
