@@ -230,7 +230,8 @@ class Application(tk.Frame):
 
 	def updateTimeTable(self):
 		""" times = {"Gerät an/aus": {"occurence": [], "sum": 0}} """
-		# TODO: Delete rows where the corresponding time has been deleted
+
+		self.table.emptyTable()
 
 		self.table.set(0,0,"Zeit")
 		self.table.set(0,1,"Wert")
@@ -238,7 +239,7 @@ class Application(tk.Frame):
 		i = 0
 		for key, value in self.times.items():
 			self.table.set(i+1,0,key)
-			self.table.set(i+1,1,value["sum"])
+			self.table.set(i+1,1,"{:.3} h".format(value["sum"]/60/60))
 			i += 1
 
 		self.update_idletasks()
@@ -468,6 +469,12 @@ class SimpleTable(tk.Frame):
 			label = tk.Label(self, text="", borderwidth=0, width=10)
 			label.grid(row=row, column=numCols, sticky="nsew", padx=1, pady=1)
 			self._widgets[row].append(label)
+
+	def emptyTable(self):
+		for row in range(len(self._widgets)):
+			for column in range(len(self._widgets[row])):
+				self._widgets[row][column].grid_forget()
+		self._widgets = []
 
 	def set(self, row, column, value):
 
