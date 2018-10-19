@@ -29,6 +29,8 @@ class TimeDefinition(tk.Frame):
 		if conditions:
 			for condition in conditions:
 				self.addCondition(condition)
+		else:
+			self.addCondition()
 
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
@@ -61,7 +63,7 @@ class TimeDefinition(tk.Frame):
 		self.conditions[currIndex]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
 		self.conditions[currIndex]['comparator'] = tk.Entry(self, width=10, justify="center")
-		self.conditions[currIndex]['comparator'].insert(0, condition["comparator"] if condition else '')
+		self.conditions[currIndex]['comparator'].insert(0, condition["comparator"] if condition else '0.0')
 		self.conditions[currIndex]['comparator'].grid(row=len(self.conditions)+2, column=3)
 		self.conditions[currIndex]['unitLabel'] = tk.Label(self, text="")
 		self.changeConditionUnit(currIndex)
@@ -296,12 +298,16 @@ class DataConfigurator(tk.Frame):
 
 	def safeConfigData(self):
 		i = 0
-		for _, value in self.mainApp.dataDict["DataColumns"].items():
-			# safe conversion data
-			value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
-			value["name"] = self.DataConfiguratorRows[i].nameField.get()
-			value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
-			i += 1
+		try:
+			for _, value in self.mainApp.dataDict["DataColumns"].items():
+				# safe conversion data
+				value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
+				value["name"] = self.DataConfiguratorRows[i].nameField.get()
+				value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
+				i += 1
+		except KeyError:
+			self.mainApp.dataDict["DataColumns"] = dict()
+			self.safeConfigData()
 
 		# safe time definition data
 		self.mainApp.dataDict["TimeDefinitions"] = self.timesCalculationFrame.getTimeDefinitions()

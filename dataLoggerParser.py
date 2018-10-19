@@ -215,7 +215,7 @@ class Parser(tk.Frame):
 		num_lines = utility.file_len(inFile)
 		# columns to parse are 1, the others 0
 		parseColumns = [a.get() for a in self.columnSelectionVars]
-		U = {"DataColumns": dict()}
+		U = {"DataColumns": dict(), "TimeDefinitions": dict()}
 		U["DataColumns"] = {"Spalte"+str(i): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
 							for i in range(sum(parseColumns))}  # dictionary to store
 

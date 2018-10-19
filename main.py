@@ -262,8 +262,12 @@ class Application(tk.Frame):
 		with open(self.file, "r") as file_obj:
 			self.dataDict = json.load(file_obj)
 
+		try:
+			 # for progress bar
+			dicLen = len(self.dataDict["DataColumns"])
+		except KeyError:
+			self.dataDict["DataColumns"] = dict()
 		i = 0
-		dicLen = len(self.dataDict["DataColumns"]) # for progress bar
 		for _, values in self.dataDict["DataColumns"].items():
 			self.data.append(list(map(float, values["data"])))
 
@@ -286,11 +290,12 @@ class Application(tk.Frame):
 	@utility.timeit
 	def calculateTimes(self):
 
-		# construct list of times. format: [{"name": "Gerät an/aus", "occurence": [1, 2, 10, 11, 12], "Wert": 5}]
-		self.times = {name: {"occurence": [], "sum": 0} for name,_ in self.dataDict["TimeDefinitions"].items()} 
-		""" times = {"Gerät an/aus": {"occurence": [], "sum": 0} """
-		""" {"TimeDefinitions": {"Gerät an/aus": [{"column": "Spannung", "operator": ">", "comparator": "0.1"}]}} """
-		""" {"DataColumns": {"Spalte0": {"name": "Spannung", "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}, "data": ["0.03","0.1"]}}} """
+		try:
+			self.times = {name: {"occurence": [], "sum": 0} for name,_ in self.dataDict["TimeDefinitions"].items()}
+		except KeyError:
+			self.dataDict["TimeDefinitions"] = dict()
+			self.calculateTimes()
+			return
 		
 		# evaluate data
 		for i in range(len(self.data[0])):
@@ -307,7 +312,11 @@ class Application(tk.Frame):
 							# the data needed for the condition
 							dataPoint = float(dataColumn["data"][i]) # TODO: apply conversion Function
 							operator = condition["operator"]
-							comparator = float(condition["comparator"])
+							try:
+								comparator = float(condition["comparator"])
+							except ValueError:
+								comparator = 0.0
+								condition["comparator"] = 0.0 # TODO: give a warning instead
 
 							# construct expression
 							expression = {"columnData": dataPoint, "operator": operator, "comparator": comparator}
