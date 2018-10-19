@@ -308,10 +308,15 @@ class Application(tk.Frame):
 				for condition in conditions:
 					# iterate through data columns and find the data needed for the current condition
 					for colKey, dataColumn in self.dataDict["DataColumns"].items():
+
+						# create the conversion function
+						params = dataColumn["convFunc"]
+						conversion = lambda x, params: params["y1"] + (x-params["x1"])*((params["y1"]-params["y2"])/(params["x1"]-params["x2"]))
+
 						# check if the current column matches the column needed for a condition
 						if dataColumn["name"] == condition["column"]:
 							# the data needed for the condition
-							dataPoint = float(dataColumn["data"][i]) # TODO: apply conversion Function
+							dataPoint = conversion(float(dataColumn["data"][i]), params)
 							operator = condition["operator"]
 							try:
 								comparator = float(condition["comparator"])
