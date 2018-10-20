@@ -24,7 +24,7 @@ def timeit(method):
 		return result
 	return timed
 
-def findFilenameSubstr(filename):
+def findFilenameSubstr(filename, fileTypeLength):
 	""" find the substring indicating the filename without the path
 	counter to count the chars of the new directory or file """
 
@@ -34,7 +34,7 @@ def findFilenameSubstr(filename):
 			counter = 0
 		elif char == '.':  # the substring for the filename was found.
 			# add everything from the last '/' to the substring
-			return filename[i-counter:i+4]
+			return filename[i-counter:i+fileTypeLength+1]
 		else:
 			counter += 1
 

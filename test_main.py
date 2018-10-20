@@ -1,13 +1,18 @@
 import unittest
-import main
+import utility
 
-class TestMain(unittest.TestCase):
+class TestUtility(unittest.TestCase):
 	def setUp(self):
 		print("Starting the tests")
 
 	def test_findFilenameSubstr(self):
 
-		self.assertEqual(main.findFilenameSubstr("C:/hallo/welt.txt"), "welt.txt")
-		self.assertEqual(main.findFilenameSubstr("hallo/welt.txt"), "welt.txt")
-		self.assertEqual(main.findFilenameSubstr("welt.txt"), "welt.txt")
-		self.assertEqual(main.findFilenameSubstr("C:\\hallo\\welt.txt"), "welt.txt")
+		self.assertEqual(utility.findFilenameSubstr("C:/hallo/welt.txt", 3), "welt.txt")
+		self.assertEqual(utility.findFilenameSubstr("hallo/welt.txt", 3), "welt.txt")
+		self.assertEqual(utility.findFilenameSubstr("welt.txt", 3), "welt.txt")
+		self.assertEqual(utility.findFilenameSubstr("C:\\hallo\\welt.txt", 3), "welt.txt")
+
+		self.assertEqual(utility.findFilenameSubstr("C:/hallo/welt.json", 4), "welt.json")
+		self.assertEqual(utility.findFilenameSubstr("hallo/welt.json", 4), "welt.json")
+		self.assertEqual(utility.findFilenameSubstr("welt.json", 4), "welt.json")
+		self.assertEqual(utility.findFilenameSubstr("C:\\hallo\\welt.json", 4), "welt.json")
