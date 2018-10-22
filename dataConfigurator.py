@@ -22,7 +22,7 @@ class TimeDefinition(tk.Frame):
 		self.addConditionButton.grid(row=2, column=2, columnspan=3, pady=(15,0))
 
 		# time delete Button
-		self.timeDeleteButton = tk.Button(self, fg="red", text="X", command=lambda: self.master.deleteTimeFrame(self))
+		self.timeDeleteButton = tk.Button(self, fg="red", text="X", command=lambda: self.master.deleteTimeDefinition(self))
 		self.timeDeleteButton.grid(row=2, column=5, padx=5, pady=(15,0))
 
 		# add all specified conditions
@@ -35,15 +35,9 @@ class TimeDefinition(tk.Frame):
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
 
-	def changeConditionUnit(self, index):
-		currName = self.conditions[index]['column'].get()
-
-		for col in self.dataColumnDefinitions:
-			if col["name"] == currName:
-				self.conditions[index]['unitLabel']['text'] = col["unit"]
 
 	def addCondition(self, condition=False):
-		""" condition format: {"column": "Spannung", "operator": ">", "comparator": ""} """
+		""" param condition: {"column": "Spannung", "operator": ">", "comparator": ""} """
 		
 		dataColumnNames = tuple(col["name"] for col in self.dataColumnDefinitions)
 
@@ -57,8 +51,7 @@ class TimeDefinition(tk.Frame):
 		self.conditions[currIndex]['columnMenu'].grid(row=len(self.conditions)+2, column=1)
 
 		# column comparison
-		self.conditions[currIndex]['operator'] = tk.StringVar(
-			self, value=condition["operator"] if condition else '>')
+		self.conditions[currIndex]['operator'] = tk.StringVar(self, value=condition["operator"] if condition else '>')
 		self.conditions[currIndex]['operatorMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['operator'], *('>', '>=', '==', '<=', '<'))
 		self.conditions[currIndex]['operatorMenu'].grid(row=len(self.conditions)+2, column=2)
 
@@ -71,6 +64,21 @@ class TimeDefinition(tk.Frame):
 		
 		self.conditions[currIndex]['deleteRowButton'] = tk.Button(self, text="X", command=lambda: self.deleteRow(currIndex))
 		self.conditions[currIndex]['deleteRowButton'].grid(row=currIndex+3, column=5)
+
+	def refreshConditions(self, dataColumnDefinitions):
+		dataColumnNames = tuple(col["name"] for col in dataColumnDefinitions)
+
+		for i, condition in enumerate(self.conditions):
+			condition['columnMenu'].delete(0, 'end')
+			for dataColumnName in dataColumnNames:
+				condition['columnMenu'].add_command(label=dataColumnName)
+		
+	def changeConditionUnit(self, index):
+		currName = self.conditions[index]['column'].get()
+
+		for col in self.dataColumnDefinitions:
+			if col["name"] == currName:
+				self.conditions[index]['unitLabel']['text'] = col["unit"]
 
 	def deleteRow(self, rowNum):
 		# remove the specified row from the row list
@@ -86,23 +94,24 @@ class TimesCalculationFrame(tk.LabelFrame):
 	def __init__(self, master, **kw):
 		super().__init__(master, kw)
 
-		tk.Button(self, text="Neue Zeit", command=self.addTimeFrame).grid(column=1)
+		tk.Button(self, text="Neue Zeit", command=self.addTimeDefinition).grid(column=1)
 		self.timeFrames = list()
-		#self.addTimeFrame()
 
 	def setTimeDefinitions(self, timeDefinitions):
-		""" sets the time definition from the main data dict """
-		""" timeDefinitions format: {"<name>": [{"column": "Spannung", "operator": ">", "comparator": ""}]} """
+		""" sets the time definition from the main data dict 
+		timeDefinitions format: {"<name>": [{"column": "Spannung", "operator": ">", "comparator": ""}]}
+		"""
 
 		# iterate through time definitions
 		for timeName, timeDef in timeDefinitions.items():
 			# add a time frame for the current time definition
-			self.addTimeFrame(name=timeName, conditions=timeDef)
+			self.addTimeDefinition(name=timeName, conditions=timeDef)
 
 	def getTimeDefinitions(self):
 		""" returns the time definition as a list of dicts describing the calculation inside a dictionary with the time name
 		format: <TODO: update this> {"name", [{"column": <columnName>, "operator": <operator>, "comparator": <comparator>}, {<...>}]} possibly repeated and 
-		connected with a comparison operator """
+		connected with a comparison operator 
+		"""
 
 		returnValue = dict()
 		for time in self.timeFrames:
@@ -114,12 +123,12 @@ class TimesCalculationFrame(tk.LabelFrame):
 											})
 		return returnValue
 
-	def addTimeFrame(self, name="", conditions=None):
+	def addTimeDefinition(self, name="", conditions=None):
 		newRow = TimeDefinition(self, name, conditions, self.master.getDataColumnDefinitions())
 		newRow.grid(column=1)
 		self.timeFrames.append(newRow)
 
-	def deleteTimeFrame(self, delObj):
+	def deleteTimeDefinition(self, delObj):
 		for i, obj in enumerate(self.timeFrames):
 			if obj == delObj:
 				obj.grid_forget()
@@ -149,7 +158,9 @@ class DataConfiguratorRow(tk.Frame):
 		self.nameField.grid(row=2, column=3, padx=3)
 
 		# conversion Fields
-		self.x1 = tk.Entry(self, width=4, justify="center")
+		self.x1_string = tk.StringVar()
+		self.x1 = tk.Entry(self, textvariable=self.x1_string, width=4, justify="center")
+		self.x1_string.trace_add("write", callback=lambda name, index, mode, sv=self.x1: master.master.refresh(sv))
 		self.x1.grid(row=2, column=5, padx=3)
 		tk.Label(self, text="V = ").grid(row=2, column=6)
 		self.y1 = tk.Entry(self, width=4, justify="center")
@@ -166,7 +177,7 @@ class DataConfiguratorRow(tk.Frame):
 		self.Unit_y1 = tk.StringVar(self, value='V')
 		tk.OptionMenu(self, self.Unit_y1, *('V', 'A', 'bar', 'l/h', '°C', '--')).grid(row=2, column=8, sticky="w")
 
-		self.Unit_y1.trace("w", self.setConversionUnit)
+		self.Unit_y1.trace_add("write", self.setConversionUnit)
 
 	def setConversionUnit(self, *args):
 		self.y2_UnitLabel['text'] = self.Unit_y1.get()
@@ -216,12 +227,26 @@ class DataConfigurator(tk.Frame):
 
 		self.createGui()
 
+	def refresh(self, sv):
+		""" Refreshs all fields of the data configurator """
+
+		print("Refreshing!")
+
+		#for dataConfiguratorRow in self.dataConfiguratorRows:
+		#		for timeDefinitionFrame in dataConfiguratorRow:
+		#			pass
+		try:
+			for timeFrame in self.timesCalculationFrame.timeFrames:
+				timeFrame.refreshConditions()
+		except AttributeError as e:
+			print(e)
+
 	def getDataColumnDefinitions(self):
 		""" Returns a list with dicts holding name and unit of each data column """
 
 		result = list()
 
-		for row in self.DataConfiguratorRows:
+		for row in self.dataConfiguratorRows:
 			result.append({'name': row.nameField.get(), 'unit': row.Unit_y1.get()})
 		
 		return result
@@ -251,43 +276,43 @@ class DataConfigurator(tk.Frame):
 		self.timesCalculationFrame.setTimeDefinitions(self.mainApp.dataDict["TimeDefinitions"])
 
 	def constructDataConversionGui(self):
-		self.DataConfiguratorRows = []
+		self.dataConfiguratorRows = []
 		headline = True
 		for i in range(len(self.mainApp.dataDict["DataColumns"])):
 			# data configurator rows
-			self.DataConfiguratorRows.append(DataConfiguratorRow(
+			self.dataConfiguratorRows.append(DataConfiguratorRow(
 				self.configColsFrame, isHeadline=headline, rowNumber=i))
 			headline = False
-			self.DataConfiguratorRows[i].grid(
+			self.dataConfiguratorRows[i].grid(
 				row=2*i+5, column=2, padx=3, pady=3, columnspan=5)
 
 			try:
-				self.DataConfiguratorRows[i].setConversionFunctionParams(
+				self.dataConfiguratorRows[i].setConversionFunctionParams(
 					self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["convFunc"])
 			except TypeError:
-				self.DataConfiguratorRows[i].setConversionFunctionParams(
+				self.dataConfiguratorRows[i].setConversionFunctionParams(
 					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
 			except KeyError:
-				self.DataConfiguratorRows[i].setConversionFunctionParams(
+				self.dataConfiguratorRows[i].setConversionFunctionParams(
 					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
 			except Exception as e:
 				raise e
 
 			try:
-				self.DataConfiguratorRows[i].nameField.delete(
-					0, len(self.DataConfiguratorRows))
-				self.DataConfiguratorRows[i].nameField.insert(
+				self.dataConfiguratorRows[i].nameField.delete(
+					0, len(self.dataConfiguratorRows))
+				self.dataConfiguratorRows[i].nameField.insert(
 					0, self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["name"])
 			except KeyError:
-				self.DataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i+1))
+				self.dataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i+1))
 			except Exception as e:
 				raise e
 
 			try:
-				self.DataConfiguratorRows[i].Unit_y1.set(
+				self.dataConfiguratorRows[i].Unit_y1.set(
 					self.mainApp.dataDict["DataColumns"]["Spalte"+str(i)]["Unit"])
 			except KeyError:
-				self.DataConfiguratorRows[i].Unit_y1.set("V")
+				self.dataConfiguratorRows[i].Unit_y1.set("V")
 			except Exception as e:
 				raise e
 
@@ -301,9 +326,9 @@ class DataConfigurator(tk.Frame):
 		try:
 			for _, value in self.mainApp.dataDict["DataColumns"].items():
 				# safe conversion data
-				value["convFunc"] = self.DataConfiguratorRows[i].getConversionFunctionParams()
-				value["name"] = self.DataConfiguratorRows[i].nameField.get()
-				value["Unit"] = self.DataConfiguratorRows[i].Unit_y1.get()
+				value["convFunc"] = self.dataConfiguratorRows[i].getConversionFunctionParams()
+				value["name"] = self.dataConfiguratorRows[i].nameField.get()
+				value["Unit"] = self.dataConfiguratorRows[i].Unit_y1.get()
 				i += 1
 		except KeyError:
 			self.mainApp.dataDict["DataColumns"] = dict()
