@@ -3,6 +3,8 @@ Backend improvements:
   For example with a "dataChanged" variable
  ☐ Pass the dict containing all information to all classes
   or make the data cache work
+ ☐ A looooooot of code refactoring
+    ☐ refactor classes according to some design patterns
 
 User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
