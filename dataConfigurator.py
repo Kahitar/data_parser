@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+import utility
 
 class TimeDefinition(tk.Frame):
 
@@ -68,10 +69,12 @@ class TimeDefinition(tk.Frame):
 	def refreshConditions(self, dataColumnDefinitions):
 		dataColumnNames = tuple(col["name"] for col in dataColumnDefinitions)
 
-		for i, condition in enumerate(self.conditions):
-			condition['columnMenu'].delete(0, 'end')
+		for _, condition in self.conditions.items():
+			condition['columnMenu']['menu'].delete(0, 'end')
 			for dataColumnName in dataColumnNames:
-				condition['columnMenu'].add_command(label=dataColumnName)
+				condition['columnMenu']['menu'].add_command(label=dataColumnName,
+															command=tk._setit(self.conditions[0]['column'], dataColumnName))
+															# TODO: Why does it work with conditions[0] ? Don't I need to specify the right index?
 		
 	def changeConditionUnit(self, index):
 		currName = self.conditions[index]['column'].get()
@@ -154,13 +157,14 @@ class DataConfiguratorRow(tk.Frame):
 		tk.Label(self, text=str(rowNumber+1)).grid(row=2, column=1, padx=20)
 
 		# name field
-		self.nameField = tk.Entry(self)
+		self.nameFieldString = tk.StringVar()
+		self.nameFieldString.trace_add(mode="write", 
+					callback=lambda name, index, mode: master.master.refresh())
+		self.nameField = tk.Entry(self, textvariable=self.nameFieldString)
 		self.nameField.grid(row=2, column=3, padx=3)
 
 		# conversion Fields
-		self.x1_string = tk.StringVar()
-		self.x1 = tk.Entry(self, textvariable=self.x1_string, width=4, justify="center")
-		self.x1_string.trace_add("write", callback=lambda name, index, mode, sv=self.x1: master.master.refresh(sv))
+		self.x1 = tk.Entry(self, width=4, justify="center")
 		self.x1.grid(row=2, column=5, padx=3)
 		tk.Label(self, text="V = ").grid(row=2, column=6)
 		self.y1 = tk.Entry(self, width=4, justify="center")
@@ -227,19 +231,18 @@ class DataConfigurator(tk.Frame):
 
 		self.createGui()
 
-	def refresh(self, sv):
+	@utility.timeit
+	def refresh(self):
 		""" Refreshs all fields of the data configurator """
-
-		print("Refreshing!")
 
 		#for dataConfiguratorRow in self.dataConfiguratorRows:
 		#		for timeDefinitionFrame in dataConfiguratorRow:
 		#			pass
 		try:
 			for timeFrame in self.timesCalculationFrame.timeFrames:
-				timeFrame.refreshConditions()
-		except AttributeError as e:
-			print(e)
+				timeFrame.refreshConditions(self.getDataColumnDefinitions())
+		except AttributeError:
+			pass
 
 	def getDataColumnDefinitions(self):
 		""" Returns a list with dicts holding name and unit of each data column """
