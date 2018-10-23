@@ -71,9 +71,13 @@ class TimeDefinition(tk.Frame):
 		dataColumnNames = tuple(col["name"] for col in dataColumnDefinitions)
 		for key, condition in self.conditions.items():
 			condition['columnMenu']['menu'].delete(0, 'end')
-			for dataColumnName in dataColumnNames:
+			for idx, dataColumnName in enumerate(dataColumnNames):
 				condition['columnMenu']['menu'].add_command(label=dataColumnName,
-															command=tk._setit(self.conditions[int(key)]['column'], dataColumnName))
+															command=tk._setit(condition['column'], dataColumnName))
+
+			optionMenuOptions = [condition['columnMenu']['menu'].entrycget(i, 'label') for i in range(3)]
+			if condition['column'].get() not in optionMenuOptions:
+				condition['column'].set(optionMenuOptions[0])
 		
 	def changeConditionUnit(self, index):
 		currName = self.conditions[index]['column'].get()
