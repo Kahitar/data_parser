@@ -47,7 +47,7 @@ class TimeDefinition(tk.Frame):
 
 		# column name
 		self.conditions[currIndex]['column'] = tk.StringVar(self, value=condition["column"] if condition else dataColumnNames[0])
-		self.conditions[currIndex]['column'].trace_add('write', callback=lambda a, b, c: self.changeConditionUnit(currIndex))
+		self.conditions[currIndex]['column'].trace_add('write', callback=lambda name, index, mode: self.changeConditionUnit(currIndex))
 		self.conditions[currIndex]['columnMenu'] = tk.OptionMenu(self, self.conditions[currIndex]['column'], *dataColumnNames)
 		self.conditions[currIndex]['columnMenu'].grid(row=len(self.conditions)+2, column=1)
 
@@ -67,14 +67,13 @@ class TimeDefinition(tk.Frame):
 		self.conditions[currIndex]['deleteRowButton'].grid(row=currIndex+3, column=5)
 
 	def refreshConditions(self, dataColumnDefinitions):
+		# refresh option menu options
 		dataColumnNames = tuple(col["name"] for col in dataColumnDefinitions)
-
-		for _, condition in self.conditions.items():
+		for key, condition in self.conditions.items():
 			condition['columnMenu']['menu'].delete(0, 'end')
 			for dataColumnName in dataColumnNames:
 				condition['columnMenu']['menu'].add_command(label=dataColumnName,
-															command=tk._setit(self.conditions[0]['column'], dataColumnName))
-															# TODO: Why does it work with conditions[0] ? Don't I need to specify the right index?
+															command=tk._setit(self.conditions[int(key)]['column'], dataColumnName))
 		
 	def changeConditionUnit(self, index):
 		currName = self.conditions[index]['column'].get()
@@ -208,10 +207,10 @@ class DataConfiguratorRow(tk.Frame):
 			raise e
 
 	def setConversionFunctionParams(self, conversionDict):
-		self.x1.delete(0, len(self.x1.get()))
-		self.x2.delete(0, len(self.x2.get()))
-		self.y1.delete(0, len(self.y1.get()))
-		self.y2.delete(0, len(self.y2.get()))
+		self.x1.delete(0, 'end')
+		self.x2.delete(0, 'end')
+		self.y1.delete(0, 'end')
+		self.y2.delete(0, 'end')
 
 		self.x1.insert(0, conversionDict["x1"])
 		self.x2.insert(0, conversionDict["x2"])
