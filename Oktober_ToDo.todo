@@ -3,6 +3,9 @@ Backend improvements:
   For example with a "dataChanged" variable
  ☐ Pass the dict containing all information to all classes
   or make the data cache work
+ ☐ A looooooot of code refactoring
+    ☐ refactor classes according to some design patterns
+    ☐ don't make the time calculation by name comparison. What if multiple data columns are given the same name??
 
 User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
@@ -14,6 +17,7 @@ User experience:
  ☐ Connect conditions with logical operators ("and", "or")
  ☐ Write an update function for the data Configurator window to update when changes are made
  ☐ Give a weight and sticky to all widgets
+ ☐ Zeiten definition speichern und laden unabhängig von daten
  
  Bugs:
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition

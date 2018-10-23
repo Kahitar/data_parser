@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import json
@@ -130,14 +130,14 @@ class Application(tk.Frame):
 		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
 
-		self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
-		self.U2_plotButton.grid(row=0, column=2, padx=3)
+		# self.U2_plotButton = tk.Button(self.diagrammFrame, text="Zustand über Zeit", command=self.plot_U2)
+		# self.U2_plotButton.grid(row=0, column=2, padx=3)
 
-		self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
-		self.U3_plotButton.grid(row=0, column=3, padx=3)
+		# self.U3_plotButton = tk.Button(self.diagrammFrame, text="Poti über Zeit", command=self.plot_U3)
+		# self.U3_plotButton.grid(row=0, column=3, padx=3)
 		
-		self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
-		self.U1_plotButton.grid(row=0, column=4, padx=3)
+		# self.U1_plotButton = tk.Button(self.diagrammFrame, text="Druck über Zeit", command=self.plot_U1)
+		# self.U1_plotButton.grid(row=0, column=4, padx=3)
 
 		""" Table """ 
 		self.table = SimpleTable(self.dataFrame)
@@ -146,7 +146,7 @@ class Application(tk.Frame):
 		self.table.set(0,1,"Sekunden")
 	
 		# test button
-		tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
+		# tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
 
 	def initParser(self):
 		# start the parser as a toplevel widget
@@ -342,105 +342,105 @@ class Application(tk.Frame):
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
 
-	def plot_U1(self):
-		try:
-			p1_bar = [u * 400 / 10 for u in self.data[0]]
+	# def plot_U1(self):
+	# 	try:
+	# 		p1_bar = [u * 400 / 10 for u in self.data[0]]
 
-			plt.figure(figsize=(2, 1))
-			plt.subplot(211)
-			plt.plot(p1_bar)
-			plt.xlabel("Zeit [sec]")
-			plt.ylabel("Druck [bar]")
-			plt.title("Drucksensor")
+	# 		plt.figure(figsize=(2, 1))
+	# 		plt.subplot(211)
+	# 		plt.plot(p1_bar)
+	# 		plt.xlabel("Zeit [sec]")
+	# 		plt.ylabel("Druck [bar]")
+	# 		plt.title("Drucksensor")
 
-			plt.subplot(212)
-			self.plot_U2()
+	# 		plt.subplot(212)
+	# 		self.plot_U2()
 
-		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
-		except Exception as e:
-			raise e
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+	# 	except Exception as e:
+	# 		raise e
 
-	def plot_U2(self):
-		try:
-			isOn = [1 if x > 15 else 0 for x in self.data[1]]
+	# def plot_U2(self):
+	# 	try:
+	# 		isOn = [1 if x > 15 else 0 for x in self.data[1]]
 
-			plt.plot(isOn)
-			plt.xlabel("Zeit [sec]")
-			plt.ylabel("Ein/Aus [-]")
-			plt.title("Gerät an/aus")
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
-		except Exception as e:
-			raise e
+	# 		plt.plot(isOn)
+	# 		plt.xlabel("Zeit [sec]")
+	# 		plt.ylabel("Ein/Aus [-]")
+	# 		plt.title("Gerät an/aus")
+	# 		plt.show()
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+	# 	except Exception as e:
+	# 		raise e
 
-	def plot_U3(self):
-		try:
-			p3_bar = [100 + u * 15 for u in self.data[2]]
+	# def plot_U3(self):
+	# 	try:
+	# 		p3_bar = [100 + u * 15 for u in self.data[2]]
 
-			plt.figure(figsize=(2, 1))
-			plt.subplot(211)
-			plt.plot(p3_bar[0:1100000])
-			plt.xlabel("Zeit [sec]")
-			plt.ylabel("Poti setting [bar]")
-			plt.title("Schiebepotentiometer, 100-250 bar")
-			plt.subplot(212)
+	# 		plt.figure(figsize=(2, 1))
+	# 		plt.subplot(211)
+	# 		plt.plot(p3_bar[0:1100000])
+	# 		plt.xlabel("Zeit [sec]")
+	# 		plt.ylabel("Poti setting [bar]")
+	# 		plt.title("Schiebepotentiometer, 100-250 bar")
+	# 		plt.subplot(212)
 			
-			isOn = [1 if x > 15 else 0 for x in self.data[1]]
+	# 		isOn = [1 if x > 15 else 0 for x in self.data[1]]
 
-			plt.plot(isOn[0:1100000])
-			plt.xlabel("Zeit [sec]")
-			plt.ylabel("Ein/Aus [-]")
-			plt.title("Gerät an/aus")
+	# 		plt.plot(isOn[0:1100000])
+	# 		plt.xlabel("Zeit [sec]")
+	# 		plt.ylabel("Ein/Aus [-]")
+	# 		plt.title("Gerät an/aus")
 			
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
-		except Exception as e:
-			raise e
+	# 		plt.show()
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+	# 	except Exception as e:
+	# 		raise e
 	
-	def histogramPotiDeviceOn(self):
-		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
-			plt.xlabel("Sollwert Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Poti Setting")
-			plt.grid(True)
+	# def histogramPotiDeviceOn(self):
+	# 	try:
+	# 		plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
+	# 		plt.xlabel("Sollwert Druck [bar]")
+	# 		plt.ylabel("Sekunden [s]")
+	# 		plt.title("Poti Setting")
+	# 		plt.grid(True)
 
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
+	# 		plt.show()
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+	# 	except Exception as e:
+	# 		raise e
 
-	def histogram(self):
-		try:
-			plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
-			plt.xlabel("Sollwert Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Poti Setting")
-			plt.grid(True)
+	# def histogram(self):
+	# 	try:
+	# 		plt.hist([100+v*15 for i, v in enumerate(self.data[2]) if self.data[1][i]>10], bins=50)
+	# 		plt.xlabel("Sollwert Druck [bar]")
+	# 		plt.ylabel("Sekunden [s]")
+	# 		plt.title("Poti Setting")
+	# 		plt.grid(True)
 
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
+	# 		plt.show()
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+	# 	except Exception as e:
+	# 		raise e
 
-	def histogramPressureDeviceOn(self):
-		try:
-			plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
-			plt.xlabel("Druck [bar]")
-			plt.ylabel("Sekunden [s]")
-			plt.title("Histogramm des Drucks")
-			plt.grid(True)
+	# def histogramPressureDeviceOn(self):
+	# 	try:
+	# 		plt.hist([v*40 for v in self.turnedOnPressure], bins=50)
+	# 		plt.xlabel("Druck [bar]")
+	# 		plt.ylabel("Sekunden [s]")
+	# 		plt.title("Histogramm des Drucks")
+	# 		plt.grid(True)
 
-			plt.show()
-		except AttributeError:
-			messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
-		except Exception as e:
-			raise e
+	# 		plt.show()
+	# 	except AttributeError:
+	# 		messagebox.showinfo("Error", "Zur Anzeige des Histograms bitte zuerst die Zeiten berechnen.")
+	# 	except Exception as e:
+	# 		raise e
 
 class SimpleTable(tk.Frame):
 	def __init__(self, parent):
