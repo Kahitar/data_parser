@@ -1,12 +1,12 @@
 Backend improvements:
  ☐ Check if data was changed before trying to save data
   For example with a "dataChanged" variable
-  ☐ A looooooot of code refactoring
+☐ A looooooot of code refactoring
   ☐ refactor classes according to some design patterns
   ☐ don't make the time calculation by name comparison. What if multiple data columns are given the same name??
-  ✔ Pass the dict containing all information to all classes @done(18-10-31 13:18)
-   or make the data cache work
-   I implemented the data cache and made it "static" (in the pythonic sense where you put all members outside a class just in the module)
+✔ Pass the dict containing all information to all classes @done(18-10-31 13:18)
+  or make the data cache work
+  I implemented the data cache and made it "static" (in the pythonic sense where you put all members outside a class just in the module)
 
 User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
