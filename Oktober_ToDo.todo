@@ -1,36 +1,41 @@
 Backend improvements:
  ☐ Check if data was changed before trying to save data
   For example with a "dataChanged" variable
- ☐ Pass the dict containing all information to all classes
-  or make the data cache work
- ☐ A looooooot of code refactoring
-    ☐ refactor classes according to some design patterns
-    ☐ don't make the time calculation by name comparison. What if multiple data columns are given the same name??
+  ☐ A looooooot of code refactoring
+  ☐ refactor classes according to some design patterns
+  ☐ don't make the time calculation by name comparison. What if multiple data columns are given the same name??
+  ✔ Pass the dict containing all information to all classes @done(18-10-31 13:18)
+   or make the data cache work
+   I implemented the data cache and made it "static" (in the pythonic sense where you put all members outside a class just in the module)
 
 User experience:
  ✔ Anzeige der aktuell laufenden Aktion @done (18-10-01 17:18)
    z.B. wenn eine neue Datei geladen wird ist nicht immer ganz klar, dass die aktuell geladenen Daten zuerst gespeichert werden. Das Programm scheint teilweise sehr lange einzufrieren.
    Zur progress bar wurde eine optionale Message hinzugefügt.
  ☐ Ladebalken und Status in extra Statusleiste
- ☐ Automatische Zeitenberechnung
+ ✔ Automatische Zeitenberechnung @done(18-10-31 15:47)
  ☐ Make the loading bar move when not idle and unknown progress
  ☐ Connect conditions with logical operators ("and", "or")
- ☐ Write an update function for the data Configurator window to update when changes are made
+ ✔ Write an update function for the data Configurator window to update when changes are made @done(18-10-31 15:47)
  ☐ Give a weight and sticky to all widgets
- ☐ Zeiten definition speichern und laden unabhängig von daten
+ ☐ Zeiten Definition speichern und laden unabhängig von daten
  ☐ Add the unit to the dataConfigurator refresh function
  
  Bugs:
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition
- ✔ TimeDefinition's delete Button seems to remove always the last line @done(18-10-14 12:03)
-   command=lambda: self.deleteRow(len(self.rows)-1) doesn't work like expected. the input to the lambda function 
-   sis changingin according to the len of the array at the time the lambda function is called
- ✔ Aktuelle Daten werden nicht gespeichert, wenn eine neue Datei über den parser geladen wird @done (18-10-01 17:18)
- ☐ Wieso wird der Ladebalken nicht aktualisiert, wenn beim Laden einer neuen Datei die alte Datei gespeichert wird?
-   Der Ladebalken sollte "Saving Data" ausgeben. 
- ☐ Changing the conversion unit shouldn't change the layout
- ✔ DataConfigurator doesn't close nominally when main window is killed @done(18-10-07 13:01)
-   The unit gets saved but the conversion parameters don't
-   The problem was, that the app tried to close it, even though it was already closed.
-   This didn't throw an error (as I expected) but instead only threw an error 
-   in the "getConversionFunctionParams" function and therefore didn't set the convParams correctly
+ 
+ Archive:
+  ✔ TimeDefinition's delete Button seems to remove always the last line @done(18-10-14 12:03)
+    command=lambda: self.deleteRow(len(self.rows)-1) doesn't work like expected. the input to the lambda function 
+    sis changingin according to the len of the array at the time the lambda function is called
+  ✔ Aktuelle Daten werden nicht gespeichert, wenn eine neue Datei über den parser geladen wird @done (18-10-01 17:18)
+  ✔ Wieso wird der Ladebalken nicht aktualisiert, wenn beim Laden einer neuen Datei die alte Datei gespeichert wird? @done(18-10-31 15:48)
+    Der Ladebalken sollte "Saving Data" ausgeben. 
+    Das Problem lag darin, dass bei count==total nicht update_idletasks() aufgerufen wurde
+  ✔ Changing the conversion unit shouldn't change the layout @done(18-10-31 15:48)
+  ✔ DataConfigurator doesn't close nominally when main window is killed @done(18-10-07 13:01)
+    The unit gets saved but the conversion parameters don't
+    The problem was, that the app tried to close it, even though it was already closed.
+    This didn't throw an error (as I expected) but instead only threw an error 
+    in the "getConversionFunctionParams" function and therefore didn't set the convParams correctly
+  

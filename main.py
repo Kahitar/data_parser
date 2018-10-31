@@ -116,13 +116,6 @@ class Application(tk.Frame):
 
 		self.loadBar.update(1, 1, msg="(Idle)")
 
-		try:
-			print("Saved: ", dataCache.dataDict["DataColumns"]["Spalte0"]["convFunc"], dataCache.dataDict["DataColumns"]["Spalte0"]["Unit"])
-		except KeyError:
-			print("No conversion values set")
-		except Exception as e:
-			raise e
-
 	def resetTimeTable(self):
 		try:
 			self.table.emptyTable()
@@ -163,7 +156,9 @@ class Application(tk.Frame):
 		""" loads a new file into memory """
 
 		# load the data
+		self.loadBar.update(1, 1, msg="(Loading new File)")
 		dataCache.loadDataFromFile(file, deleteOldData)
+		self.loadBar.update(1, 1, msg="(Idle)")
 
 		# change the file label
 		self.setFileLabel(file)
@@ -244,7 +239,7 @@ class Application(tk.Frame):
 				# iterate through the conditions for the current time
 				for condition in conditions:
 					# iterate through data columns and find the data needed for the current condition
-					for colKey, dataColumn in dataCache.dataDict["DataColumns"].items():
+					for _colKey, dataColumn in dataCache.dataDict["DataColumns"].items():
 
 						# create the conversion function
 						params = dataColumn["convFunc"]
