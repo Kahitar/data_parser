@@ -22,6 +22,7 @@ User experience:
  ☐ Add the unit to the dataConfigurator refresh function
  
  Bugs:
+ ☐ Load data from data parser doesn't load the newly parsed file
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition
  
  Archive:

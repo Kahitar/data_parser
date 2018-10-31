@@ -6,33 +6,34 @@ class RawDataParser:
     pass
 
 class JSONParser:
-	# TODO: Do I need this class or can the dataCache handle the json loading
 
-    def loadJSONFile(self, file):
-        """ Reads the JSON data from a file into memory and returns it as a dictionary """
-        # TODO: Do I need these error checkings?
-        try:
-            if file == '':
-                raise AttributeError
-        except AttributeError:
-            messagebox.showinfo("Error", "Keine Datei ausgewählt.")
-            return
-        except FileNotFoundError:
-            messagebox.showinfo("Error", "Die Datei konnte nicht gefunden werden")
-            return
-        except Exception as e:
-            raise e
+	@classmethod
+	def loadJSONFile(cls, file):
+		""" Reads the JSON data from a file into memory and returns it as a dictionary """
+		# TODO: Do I need these error checkings?
+		try:
+			if file == '':
+				raise AttributeError
+		except AttributeError:
+			messagebox.showinfo("Error", "Keine Datei ausgewählt.")
+			return
+		except FileNotFoundError:
+			messagebox.showinfo("Error", "Die Datei konnte nicht gefunden werden")
+			return
+		except Exception as e:
+			raise e
 
-        with open(file, "r") as file_obj:
-            dataDict = json.load(file_obj)
+		with open(file, "r") as file_obj:
+			dataDict = json.load(file_obj)
 
-        return dataDict
+		return dataDict
 
-    def writeJSONFile(self, outFile, dataDict):
-        """ write a data dictionary to the output file as JSON """
+	@classmethod
+	def writeJSONFile(cls, outFile, dataDict):
+		""" write a data dictionary to the output file as JSON """
 
-        with open(outFile, "w") as f:
-            json.dump(dataDict, f)
+		with open(outFile, "w") as f:
+			json.dump(dataDict, f)
 
 # TODO: Refactor class Parser
 

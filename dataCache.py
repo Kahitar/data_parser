@@ -1,4 +1,5 @@
 import json
+from dataLoggerParser import JSONParser
 
 currFile = ""
 dataDict = dict()
@@ -29,8 +30,7 @@ def loadDataFromFile(file, deleteOldData=False):
             print(e)
     
     # load data from new file
-    with open(file, "r") as f:
-        dataDict = json.load(f)
+    dataDict = JSONParser.loadJSONFile(file)
 
     # save the file as current file
     currFile = file
@@ -40,6 +40,7 @@ def saveDataToFile(file=None):
     If no file was specified, the currently loaded file will be used as destination
     """
 
+    global dataDict
     global currFile
 
     # check wether a file was specified
@@ -51,8 +52,7 @@ def saveDataToFile(file=None):
             raise NoFileSpecifiedError("Keine Datei zum Speichern der Daten verfügbar.")
     
     # save the data to the file
-    with open(file, "w") as f:
-        json.dump(dataDict, f)
+    JSONParser.writeJSONFile(file, dataDict)
 
 class NoFileSpecifiedError(AttributeError):
     def __init__(self, message):
