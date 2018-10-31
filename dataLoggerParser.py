@@ -6,6 +6,7 @@ class RawDataParser:
     pass
 
 class JSONParser:
+	# TODO: Do I need this class or can the dataCache handle the json loading
 
     def loadJSONFile(self, file):
         """ Reads the JSON data from a file into memory and returns it as a dictionary """
