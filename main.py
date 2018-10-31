@@ -89,6 +89,9 @@ class Application(tk.Frame):
 			print("Caution: Couldn't save data file!")
 		self.file = file
 
+		# reset the table
+		self.resetTimeTable()
+
 	def createGui(self):
 		""" Menu bar """
 		self.menubar = tk.Menu(self)
@@ -142,11 +145,19 @@ class Application(tk.Frame):
 		""" Table """ 
 		self.table = SimpleTable(self.dataFrame)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
-		self.table.set(0,0,"Zeit")
-		self.table.set(0,1,"Sekunden")
+		self.table.set(0,0,"Name")
+		self.table.set(0,1,"Zeit")
 	
 		# test button
 		# tk.Button(self, text="Testbutton", command=self.histogramPotiDeviceOn).grid(column=0, row=1)
+
+	def resetTimeTable(self):
+		try:
+			self.table.emptyTable()
+		except AttributeError:
+			pass
+		self.table.set(0,0,"Name")
+		self.table.set(0,1,"Zeit")
 
 	def initParser(self):
 		# start the parser as a toplevel widget
@@ -233,14 +244,18 @@ class Application(tk.Frame):
 
 		self.table.emptyTable()
 
-		self.table.set(0,0,"Zeit")
-		self.table.set(0,1,"Wert")
+		self.table.set(0,0,"Name")
+		self.table.set(0,1,"Zeit")
 
-		i = 0
-		for key, value in self.times.items():
-			self.table.set(i+1,0,key)
-			self.table.set(i+1,1,"{:.3} h".format(value["sum"]/60/60))
-			i += 1
+		try:
+			i = 0
+			for key, value in self.times.items():
+				self.table.set(i+1,0,key)
+				self.table.set(i+1,1,"{:.3} h".format(value["sum"]/60/60))
+				i += 1
+		except AttributeError:
+			# Times not calculated yet
+			pass
 
 		self.update_idletasks()
 
@@ -497,4 +512,6 @@ class SimpleTable(tk.Frame):
 			self.addRow()
 			self.set(row, column, value)
 
-if __name__ == '__main__': main()
+if __name__ == '__main__': 
+	print("Programm wird gestartet. Bitte einen Moment Geduld.")
+	main()
