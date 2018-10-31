@@ -6,13 +6,14 @@ class DataCache:
         self.currFile = ""
         self.dataDict = dict()
 
-    def loadDataFromFile(self, file):
+    def loadDataFromFile(self, file, deleteOldData=False):
         """ Saves the data currently loaded to the current file 
         and loads the data from the new file
         """
 
         # make sure the curerntly loaded data doesn't get lost (save it to its file)
-        if self.dataDict: # the dataDict is not empty
+        if self.dataDict and not deleteOldData: # the dataDict is not empty and 
+                                                # it's data should be saved
             try:
                 self.saveDataToFile(self.currFile)
             except NoFileSpecifiedError: # no file loaded yet
