@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import json
 import dataCache
 import dataConfigurator
 import dataLoggerParser
 import progressBar
+import tkTable
 import utility
 
 def main():
@@ -37,14 +37,14 @@ class Application(tk.Frame):
 
 		""" Frames """
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(column=0, row=5)
+		self.statusFrame.grid(row=5, column=0)
 
 		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
-		self.dataFrame.grid(column=0, row=15)
+		self.dataFrame.grid(row=15, column=0)
 		self.dataFrame.grid_propagate(False)
 
 		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
-		self.diagrammFrame.grid(column=0, row=25, sticky="nsew")
+		self.diagrammFrame.grid(row=25, column=0, sticky="nsew")
 
 		""" Loading bar """
 		self.loadBar = progressBar.SimpleProgressBar(self.statusFrame)
@@ -66,10 +66,26 @@ class Application(tk.Frame):
 		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
 
 		""" Table """ 
-		self.table = SimpleTable(self.dataFrame)
+		self.table = tkTable.TkTable(self.dataFrame)
 		self.table.grid(row=6, column=10, rowspan=9, padx=10)
 		self.table.set(0,0,"Name")
 		self.table.set(0,1,"Zeit")
+	
+	def initParser(self):
+		# start the parser as a toplevel widget
+		self.parser = dataLoggerParser.Parser(master=tk.Toplevel(), mainApp=self)
+		self.parser.mainloop()
+
+	def initDataConfigurator(self):
+		# start the data configurator window as a toplevel widget
+		try:
+			if not dataCache.dataDict:
+				raise AttributeError
+		except AttributeError:
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
+		else:
+			self.dataConfigurator = dataConfigurator.DataConfigurator(tk.Toplevel(), self)
+			self.dataConfigurator.mainloop()
 
 	@utility.timeit
 	def closeApp(self):
@@ -116,42 +132,20 @@ class Application(tk.Frame):
 
 		self.loadBar.update(1, 1, msg="(Idle)")
 
-	def resetTimeTable(self):
-		try:
-			self.table.emptyTable()
-		except AttributeError:
-			pass
-		self.table.set(0,0,"Name")
-		self.table.set(0,1,"Zeit")
+	def loadFile(self):
+		""" Opens the file dialog to ask for a new file to load
+		and loads the data from the file
+		"""
 
-	def initParser(self):
-		# start the parser as a toplevel widget
-		self.parser = dataLoggerParser.Parser(master=tk.Toplevel(), mainApp=self)
-		self.parser.mainloop()
-
-	def initDataConfigurator(self):
-		# start the data configurator window as a toplevel widget
-		try:
-			if not dataCache.dataDict:
-				raise AttributeError
-		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
+		# open the file dialog
+		selectedFile = filedialog.askopenfilename(initialdir=utility.FILES_LOCATION, title="Select file", 
+													filetypes=(("json files","*.json"),))
+		# check if a file was read in
+		if selectedFile == '': # file dialog was canceled
+			return
 		else:
-			self.dataConfigurator = dataConfigurator.DataConfigurator(tk.Toplevel(), self)
-			self.dataConfigurator.mainloop()
-
-	def setFileLabel(self, file):
-		# find the substring indicating the filename without the path
-		labelText = utility.findFilenameSubstr(file, 4) # the file is a .json file
-
-		# set the file Label showing the selected file with the previously found substring
-		try:
-			self.fileLabel['text'] = labelText
-		except UnboundLocalError:
-			raise e
-		except Exception as e:
-			raise e
-
+			self.setFileToLoad(selectedFile)
+	
 	def setFileToLoad(self, file, deleteOldData=False):
 		""" loads a new file into memory """
 
@@ -166,19 +160,17 @@ class Application(tk.Frame):
 		# reset the table
 		self.resetTimeTable()
 
-	def loadFile(self):
-		""" Opens the file dialog to ask for a new file to load
-		and loads the data from the file
-		"""
+	def setFileLabel(self, file):
+		# find the substring indicating the filename without the path
+		labelText = utility.findFilenameSubstr(file, 4) # the file is a .json file
 
-		# open the file dialog
-		selectedFile = filedialog.askopenfilename(initialdir=utility.FILES_LOCATION, title="Select file", 
-													filetypes=(("json files","*.json"),))
-		# check if a file was read in
-		if selectedFile == '': # file dialog was canceled
-			return
-		else:
-			self.setFileToLoad(selectedFile)
+		# set the file Label showing the selected file with the previously found substring
+		try:
+			self.fileLabel['text'] = labelText
+		except UnboundLocalError:
+			raise e
+		except Exception as e:
+			raise e
 
 	def showTimes(self):
 		""" Refreshes the time-table (or renders it). Function run through button """
@@ -211,14 +203,13 @@ class Application(tk.Frame):
 
 		self.update_idletasks()
 
-	def evaluateExpression(self, expression):
-		""" {"columnData": 1, "operator": ">", "comparator": 0.1} """
-
-		d = expression
-		d["columnData"] = float(d["columnData"])
-		d["comparator"] = float(d["comparator"])
-		
-		return eval("columnData" + d["operator"] + "comparator", d)
+	def resetTimeTable(self):
+		try:
+			self.table.emptyTable()
+		except AttributeError:
+			pass
+		self.table.set(0,0,"Name")
+		self.table.set(0,1,"Zeit")
 
 	@utility.timeit
 	def calculateTimes(self):
@@ -273,63 +264,15 @@ class Application(tk.Frame):
 
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
+	
+	def evaluateExpression(self, expression):
+		""" {"columnData": 1, "operator": ">", "comparator": 0.1} """
 
-
-class SimpleTable(tk.Frame):
-	def __init__(self, parent):
-		# use black background so it "peeks through" to 
-		# form grid lines
-		tk.Frame.__init__(self, parent, background="black")
-		self._widgets = []
-
-	def addRow(self):
-		current_row = []
-		numRows = len(self._widgets)
-		try:
-			numCols = len(self._widgets[0])
-		except:
-			numCols = 1
-
-		for column in range(numCols):
-			label = tk.Label(self, text="", borderwidth=0, width=10)
-			label.grid(row=numRows, column=column, sticky="nsew", padx=1, pady=1)
-			current_row.append(label)
-		self._widgets.append(current_row)
-
-	def addColumn(self):
-		numRows = len(self._widgets)
-		try:
-			numCols = len(self._widgets[0])
-		except:
-			numCols = 1
-
-		for row in range(numRows):
-			label = tk.Label(self, text="", borderwidth=0, width=10)
-			label.grid(row=row, column=numCols, sticky="nsew", padx=1, pady=1)
-			self._widgets[row].append(label)
-
-	def emptyTable(self):
-		for row in range(len(self._widgets)):
-			for column in range(len(self._widgets[row])):
-				self._widgets[row][column].grid_forget()
-		self._widgets = []
-
-	def set(self, row, column, value):
-
-		# check if the cell already exists
-		if len(self._widgets) > row:
-			if len(self._widgets[0]) > column:
-				# cell exists, change text
-				widget = self._widgets[row][column]
-				widget["text"] = value
-				widget.config(width=len(str(value)))
-			else:
-				self.addColumn()
-				self.set(row, column, value)
-		else:
-			self.addRow()
-			self.set(row, column, value)
+		d = expression
+		d["columnData"] = float(d["columnData"])
+		d["comparator"] = float(d["comparator"])
+		
+		return eval("columnData" + d["operator"] + "comparator", d)
 
 if __name__ == '__main__': 
-	print("Programm wird gestartet. Bitte einen Moment Geduld.")
 	main()
