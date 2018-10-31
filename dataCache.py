@@ -12,8 +12,8 @@ class DataCache:
         """
 
         # make sure the curerntly loaded data doesn't get lost (save it to its file)
-        if self.dataDict and not deleteOldData: # the dataDict is not empty and 
-                                                # it's data should be saved
+        if self.dataDict and not deleteOldData: # the dataDict is not empty 
+                                                # and it's data should be saved
             try:
                 self.saveDataToFile(self.currFile)
             except NoFileSpecifiedError: # no file loaded yet
@@ -46,7 +46,7 @@ class DataCache:
             if self.currFile != "":
                 file = self.currFile
             else:
-                raise NoFileSpecifiedError("Keine Datei zum Speichern der Daten ausgewählt.")
+                raise NoFileSpecifiedError("Keine Datei zum Speichern der Daten verfügbar.")
         
         # save the data to the file
         with open(file, "w") as f:
