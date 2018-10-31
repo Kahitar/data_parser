@@ -18,6 +18,7 @@ User experience:
  ☐ Write an update function for the data Configurator window to update when changes are made
  ☐ Give a weight and sticky to all widgets
  ☐ Zeiten definition speichern und laden unabhängig von daten
+ ☐ Add the unit to the dataConfigurator refresh function
  
  Bugs:
  ☐ Give the DataConfigurator the same gui setup (meaning same class system) as TimeDefinition
