@@ -8,7 +8,8 @@ class DataCache:
 
     def loadDataFromFile(self, file):
         """ Saves the data currently loaded to the current file 
-        and loads the data from the new file"""
+        and loads the data from the new file
+        """
 
         # make sure the curerntly loaded data doesn't get lost (save it to its file)
         if self.dataDict: # the dataDict is not empty
@@ -20,22 +21,23 @@ class DataCache:
                 self.saveDataToFile(tempFile)
 
                 # print warnings
-                print("Data was loaded when trying to load a new file.\nThe data was saved to the temporary file " + tempFile)
+                print("Data was cached when trying to load a new file.\nThe data was saved to the temporary file " + tempFile)
                 print("The file will be overriden if this error happens again!")
             except Exception as e:
                 print("Couldn't save data. Data is now lost...")
                 print(e)
         
         # load data from new file
-        with open(file, "r") as file_obj:
-            self.dataDict = json.load(file_obj)
+        with open(file, "r") as f:
+            self.dataDict = json.load(f)
 
         # save the file as current file
         self.currFile = file
 
     def saveDataToFile(self, file=None):
         """ Saves the currently loaded data to a file. 
-        If no file was specified, the currently loaded file will be used as destination"""
+        If no file was specified, the currently loaded file will be used as destination
+        """
 
         # check wether a file was specified
         if file == None:
