@@ -142,7 +142,7 @@ class Application(tk.Frame):
 
 	def setFileLabel(self, file):
 		# find the substring indicating the filename without the path
-		labelText = utility.findFilenameSubstr(file)
+		labelText = utility.findFilenameSubstr(file, 4) # the file is a .json file
 
 		# set the file Label showing the selected file with the previously found substring
 		try:
@@ -173,7 +173,7 @@ class Application(tk.Frame):
 
 		# open the file dialog
 		selectedFile = filedialog.askopenfilename(initialdir=utility.FILES_LOCATION, title="Select file", 
-													filetypes=(("txt files","*_PYOUTPUT.txt"),))
+													filetypes=(("json files","*.json"),))
 		# check if a file was read in
 		if selectedFile == '': # file dialog was canceled
 			return
