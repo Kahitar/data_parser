@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import utility
+import dataCache
 
 class TimeDefinition(tk.Frame):
 
@@ -226,7 +227,7 @@ class DataConfigurator(tk.Frame):
 		super().__init__(master)
 		master.protocol("WM_DELETE_WINDOW", self.close)
 
-		self.mainApp = mainApp
+		self.mainApp = mainApp # TODO: Remove mainApp
 
 		self.grid()
 		self.master.minsize(500, 300)
@@ -278,12 +279,12 @@ class DataConfigurator(tk.Frame):
 		self.timesCalculationFrame = TimesCalculationFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
                                         relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
-		self.timesCalculationFrame.setTimeDefinitions(self.mainApp.cache.dataDict["TimeDefinitions"])
+		self.timesCalculationFrame.setTimeDefinitions(dataCache.dataDict["TimeDefinitions"])
 
 	def constructDataConversionGui(self):
 		self.dataConfiguratorRows = []
 		headline = True
-		for i in range(len(self.mainApp.cache.dataDict["DataColumns"])):
+		for i in range(len(dataCache.dataDict["DataColumns"])):
 			# data configurator rows
 			self.dataConfiguratorRows.append(DataConfiguratorRow(
 				self.configColsFrame, isHeadline=headline, rowNumber=i))
@@ -293,7 +294,7 @@ class DataConfigurator(tk.Frame):
 
 			try:
 				self.dataConfiguratorRows[i].setConversionFunctionParams(
-					self.mainApp.cache.dataDict["DataColumns"]["Spalte"+str(i)]["convFunc"])
+					dataCache.dataDict["DataColumns"]["Spalte"+str(i)]["convFunc"])
 			except TypeError:
 				self.dataConfiguratorRows[i].setConversionFunctionParams(
 					{"x1": 0, "x2": 1, "y1": 0, "y2": 1})
@@ -307,7 +308,7 @@ class DataConfigurator(tk.Frame):
 				self.dataConfiguratorRows[i].nameField.delete(
 					0, len(self.dataConfiguratorRows))
 				self.dataConfiguratorRows[i].nameField.insert(
-					0, self.mainApp.cache.dataDict["DataColumns"]["Spalte"+str(i)]["name"])
+					0, dataCache.dataDict["DataColumns"]["Spalte"+str(i)]["name"])
 			except KeyError:
 				self.dataConfiguratorRows[i].nameField.insert(0, "Spalte"+str(i+1))
 			except Exception as e:
@@ -315,7 +316,7 @@ class DataConfigurator(tk.Frame):
 
 			try:
 				self.dataConfiguratorRows[i].Unit_y1.set(
-					self.mainApp.cache.dataDict["DataColumns"]["Spalte"+str(i)]["Unit"])
+					dataCache.dataDict["DataColumns"]["Spalte"+str(i)]["Unit"])
 			except KeyError:
 				self.dataConfiguratorRows[i].Unit_y1.set("V")
 			except Exception as e:
@@ -329,15 +330,15 @@ class DataConfigurator(tk.Frame):
 	def safeConfigData(self):
 		i = 0
 		try:
-			for _, value in self.mainApp.cache.dataDict["DataColumns"].items():
+			for _, value in dataCache.dataDict["DataColumns"].items():
 				# safe conversion data
 				value["convFunc"] = self.dataConfiguratorRows[i].getConversionFunctionParams()
 				value["name"] = self.dataConfiguratorRows[i].nameField.get()
 				value["Unit"] = self.dataConfiguratorRows[i].Unit_y1.get()
 				i += 1
 		except KeyError:
-			self.mainApp.cache.dataDict["DataColumns"] = dict()
+			dataCache.dataDict["DataColumns"] = dict()
 			self.safeConfigData()
 
 		# safe time definition data
-		self.mainApp.cache.dataDict["TimeDefinitions"] = self.timesCalculationFrame.getTimeDefinitions()
+		dataCache.dataDict["TimeDefinitions"] = self.timesCalculationFrame.getTimeDefinitions()

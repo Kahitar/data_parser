@@ -22,8 +22,6 @@ class Application(tk.Frame):
 		self.master.minsize(500,500)
 		self.master.title("Data logger")
 
-		self.cache = dataCache.DataCache()
-
 		self.createGui()
 
 	def createGui(self):
@@ -114,12 +112,12 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Saving data)")
 
 		# write the data dictionary to the output file as JSON
-		self.cache.saveDataToFile()
+		dataCache.saveDataToFile()
 
 		self.loadBar.update(1, 1, msg="(Idle)")
 
 		try:
-			print("Saved: ", self.cache.dataDict["DataColumns"]["Spalte0"]["convFunc"], self.cache.dataDict["DataColumns"]["Spalte0"]["Unit"])
+			print("Saved: ", dataCache.dataDict["DataColumns"]["Spalte0"]["convFunc"], dataCache.dataDict["DataColumns"]["Spalte0"]["Unit"])
 		except KeyError:
 			print("No conversion values set")
 		except Exception as e:
@@ -141,7 +139,7 @@ class Application(tk.Frame):
 	def initDataConfigurator(self):
 		# start the data configurator window as a toplevel widget
 		try:
-			if not self.cache.dataDict:
+			if not dataCache.dataDict:
 				raise AttributeError
 		except AttributeError:
 			messagebox.showinfo("Error", "Bitte zuerst eine Datei einlesen.")
@@ -165,7 +163,7 @@ class Application(tk.Frame):
 		""" loads a new file into memory """
 
 		# load the data
-		self.cache.loadDataFromFile(file, deleteOldData)
+		dataCache.loadDataFromFile(file, deleteOldData)
 
 		# change the file label
 		self.setFileLabel(file)
@@ -231,22 +229,22 @@ class Application(tk.Frame):
 	def calculateTimes(self):
 
 		try:
-			self.times = {name: {"occurence": [], "sum": 0} for name,_ in self.cache.dataDict["TimeDefinitions"].items()}
+			self.times = {name: {"occurence": [], "sum": 0} for name,_ in dataCache.dataDict["TimeDefinitions"].items()}
 		except KeyError:
-			self.cache.dataDict["TimeDefinitions"] = dict()
+			dataCache.dataDict["TimeDefinitions"] = dict()
 			self.calculateTimes()
 			return
 		
 		# evaluate data
-		for i in range(len(self.cache.dataDict["DataColumns"]["Spalte0"]["data"])):
+		for i in range(len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"])):
 
 			# iterate through the time definitions
-			for timeDef, conditions in self.cache.dataDict["TimeDefinitions"].items():
+			for timeDef, conditions in dataCache.dataDict["TimeDefinitions"].items():
 				conditionsSatisfied = True
 				# iterate through the conditions for the current time
 				for condition in conditions:
 					# iterate through data columns and find the data needed for the current condition
-					for colKey, dataColumn in self.cache.dataDict["DataColumns"].items():
+					for colKey, dataColumn in dataCache.dataDict["DataColumns"].items():
 
 						# create the conversion function
 						params = dataColumn["convFunc"]
@@ -276,7 +274,7 @@ class Application(tk.Frame):
 					self.times[timeDef]["sum"] += 1
 
 			# write progress bar
-			self.loadBar.update(i, len(self.cache.dataDict["DataColumns"]["Spalte0"]["data"]), msg="(Calculating)")
+			self.loadBar.update(i, len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"]), msg="(Calculating)")
 
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
