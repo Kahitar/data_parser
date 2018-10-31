@@ -24,8 +24,9 @@ class SimpleProgressBar(tk.Frame):
 		if count == total:
 			self.progressbar['maximum'] = total
 			self.progressbar['value'] = count
-			self.progressLabel['text'] = "100%"
+			self.progressLabel['text'] = ""
 			self.messageLabel['text'] = msg
+			self.progressbar.update_idletasks()
 		elif time.time() - self.lastUpdate > self.updateTime:
 			if total != None:
 				self.progressbar['maximum'] = total
