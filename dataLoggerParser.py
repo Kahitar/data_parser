@@ -180,10 +180,14 @@ class Parser(tk.Frame):
 			raise e
 
 		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
-                             command=lambda: self.mainApp.setFileToLoad(outFile, False))
+                             command=lambda: self.passToMainApp(outFile))
 		self.setToLoad.grid(row=20, column=10, sticky="ew")
 		tk.Label(self.parserFrame, text="(Schließt den Parser)",
 		         fg="red").grid(row=21, column=10, sticky="ew")
+
+	def passToMainApp(self, outFile):
+		self.mainApp.setFileToLoad(outFile, False)
+		self.close()
 
 	def loadPreviewValues(self):
 		""" Loads the first three rows of the selected file"""

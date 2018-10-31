@@ -173,13 +173,6 @@ class Application(tk.Frame):
 		# reset the table
 		self.resetTimeTable()
 
-		# close the parser (in case this function was called from the parser) 
-		# TODO: Let the parser handle this
-		try:
-			self.parser.close()
-		except:
-			pass
-
 	def loadFile(self):
 		""" Opens the file dialog to ask for a new file to load
 		and loads the data from the file
