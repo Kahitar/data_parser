@@ -39,9 +39,13 @@ class Application(tk.Frame):
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(row=5, column=0)
 
-		self.dataFrame = tk.LabelFrame(master=self, text="Daten verarbeiten", borderwidth=1, relief="sunken", width=500, height=300, padx=5, pady=5)
+		self.dataFrame = tk.LabelFrame(master=self, text="Daten", borderwidth=1, relief="sunken", width=500, height=85, padx=5, pady=5)
 		self.dataFrame.grid(row=15, column=0)
 		self.dataFrame.grid_propagate(False)
+
+		self.timesFrame = tk.LabelFrame(master=self, text="Laufzeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
+		self.timesFrame.grid(row=20, column=0, sticky='ew')
+		#self.timesFrame.grid_propagate(False)
 
 		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
 		self.diagrammFrame.grid(row=25, column=0, sticky="nsew")
@@ -49,25 +53,41 @@ class Application(tk.Frame):
 		""" Loading bar """
 		self.loadBar = progressBar.SimpleProgressBar(self.statusFrame)
 
-		""" Buttons and Labels """
+		""" Data Frame """
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
-		self.openFileButton.grid(row=3, column=5, sticky="ew")
-
 		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
-		self.fileLabel.grid(row=3, column=10, sticky="w")
-
-		self.configDataButton = tk.Button(self.dataFrame, text="Daten konfigurieren", command=self.initDataConfigurator)
-		self.configDataButton.grid(row=4, column=5, sticky="ew")
-
+		self.configDataButton = tk.Button(self.dataFrame, text="Daten auswählen", command=self.initDataConfigurator)
 		self.configDataLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
+
+		self.openFileButton.grid(row=3, column=5, sticky="ew")
+		self.fileLabel.grid(row=3, column=10, sticky="w")
+		self.configDataButton.grid(row=4, column=5, sticky="ew")
 		self.configDataLabel.grid(row=4, column=10, sticky="w")
 
-		self.ZeitenButton = tk.Button(self.dataFrame, text="Laufzeiten berechnen", command=self.showTimes)
-		self.ZeitenButton.grid(row=6, column=5, sticky="ew")
+		""" Times Frame """
 
-		""" Table """ 
-		self.table = tkTable.TkTable(self.dataFrame)
-		self.table.grid(row=6, column=10, rowspan=9, padx=10)
+		self.ZeitenButton = tk.Button(self.timesFrame, text="Laufzeiten berechnen", command=self.showTimes)
+		self.timeRangeFrame = tk.Frame(self.timesFrame)
+		self.table = tkTable.TkTable(self.timesFrame)
+
+		self.ZeitenButton.grid(row=5, column=5, padx=5, sticky='w')
+		self.timeRangeFrame.grid(row=6, column=0, rowspan=2, sticky='n')
+		self.table.grid(row=6, column=5, pady=5, padx=5)
+
+		self.timeRangeLabel = tk.Label(self.timeRangeFrame, text="Berechnungszeitraum")
+		self.fromTimeLabel = tk.Label(self.timeRangeFrame, text="Von: ")
+		self.fromTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
+		self.toTimeLabel = tk.Label(self.timeRangeFrame, text="Bis: ")
+		self.toTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
+		self.formatLabel = tk.Label(self.timeRangeFrame, text="Format: yyyy-mm-dd")
+
+		self.timeRangeLabel.grid(row=0, column=0, columnspan=2, sticky='w')
+		self.fromTimeLabel.grid(row=1, column=0, sticky='e')
+		self.fromTimeEntry.grid(row=1, column=1)
+		self.toTimeLabel.grid(row=2, column=0, sticky='e')
+		self.toTimeEntry.grid(row=2, column=1)
+		self.formatLabel.grid(row=3, column=0, columnspan=2, sticky='w')
+
 		self.table.set(0,0,"Name")
 		self.table.set(0,1,"Zeit")
 	
