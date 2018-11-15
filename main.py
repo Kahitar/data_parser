@@ -181,7 +181,7 @@ class Application(tk.Frame):
 
 	def setFileLabel(self, file):
 		# find the substring indicating the filename without the path
-		labelText = utility.findFilenameSubstr(file, 4) # the file is a .json file
+		labelText = utility.getFilenameSubstr(file)
 
 		# set the file Label showing the selected file with the previously found substring
 		try:

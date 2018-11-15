@@ -24,19 +24,11 @@ def timeit(method):
 		return result
 	return timed
 
-def findFilenameSubstr(filename, fileTypeLength):
+def getFilenameSubstr(filename):
 	""" find the substring indicating the filename without the path
 	counter to count the chars of the new directory or file """
 
-	counter = len(filename)
-	for i, char in enumerate(filename):
-		if char == '/' or char == '\\':  # start counting the chars from zero
-			counter = 0
-		elif char == '.':  # the substring for the filename was found.
-			# add everything from the last '/' to the substring
-			return filename[i-counter:i+fileTypeLength+1]
-		else:
-			counter += 1
+	return filename.split("/")[-1]
 
 def file_len(fname):
 	""" returns the length (number of lines) of a file """

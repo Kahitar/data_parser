@@ -155,7 +155,7 @@ class Parser(tk.Frame):
 		self.focus_force()
 
 		# find the substring indicating the filename without the path
-		label = utility.findFilenameSubstr(self.loggerFile, 3)
+		label = utility.getFilenameSubstr(self.loggerFile)
 
 		# set the file Label showing the selected file with the previously found substring
 		try:
@@ -171,9 +171,9 @@ class Parser(tk.Frame):
 
 		try:
 			outFile = utility.FILES_LOCATION + "\\" + \
-				utility.findFilenameSubstr(self.loggerFile[:-4] + '_PYOUTPUT.json', 4)
+				utility.getFilenameSubstr(self.loggerFile[:-4] + '_PYOUTPUT.json')
 			self.read_datalogger(self.loggerFile, outFile)
-			self.jsonFileLabel['text'] = utility.findFilenameSubstr(outFile, 4)
+			self.jsonFileLabel['text'] = utility.getFilenameSubstr(outFile)
 		except Exception as e:
 			messagebox.showinfo(
 				"Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
