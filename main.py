@@ -37,18 +37,15 @@ class Application(tk.Frame):
 
 		""" Frames """
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
-		self.statusFrame.grid(row=5, column=0)
-
 		self.dataFrame = tk.LabelFrame(master=self, text="Daten", borderwidth=1, relief="sunken", width=500, height=85, padx=5, pady=5)
+		self.timesFrame = tk.LabelFrame(master=self, text="Laufzeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
+		#self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
+
+		self.statusFrame.grid(row=5, column=0)
 		self.dataFrame.grid(row=15, column=0)
 		self.dataFrame.grid_propagate(False)
-
-		self.timesFrame = tk.LabelFrame(master=self, text="Laufzeiten", borderwidth=1, relief="sunken", width=500, height=200, padx=5, pady=5)
 		self.timesFrame.grid(row=20, column=0, sticky='ew')
-		#self.timesFrame.grid_propagate(False)
-
-		self.diagrammFrame = tk.LabelFrame(master=self, text="Diagramme", borderwidth=1, relief="sunken", padx=5, pady=15)
-		self.diagrammFrame.grid(row=25, column=0, sticky="nsew")
+		#self.diagrammFrame.grid(row=25, column=0, sticky="nsew")
 
 		""" Loading bar """
 		self.loadBar = progressBar.SimpleProgressBar(self.statusFrame)
@@ -75,18 +72,20 @@ class Application(tk.Frame):
 		self.table.grid(row=6, column=5, pady=5, padx=5)
 
 		self.timeRangeLabel = tk.Label(self.timeRangeFrame, text="Berechnungszeitraum")
+		self.formatLabel1 = tk.Label(self.timeRangeFrame, text="Format: ")
+		self.formatLabel2 = tk.Label(self.timeRangeFrame, text="YYYY-MM-DD")
 		self.fromTimeLabel = tk.Label(self.timeRangeFrame, text="Von: ")
 		self.fromTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
 		self.toTimeLabel = tk.Label(self.timeRangeFrame, text="Bis: ")
 		self.toTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
-		self.formatLabel = tk.Label(self.timeRangeFrame, text="Format: yyyy-mm-dd")
 
 		self.timeRangeLabel.grid(row=0, column=0, columnspan=2, sticky='w')
-		self.fromTimeLabel.grid(row=1, column=0, sticky='e')
-		self.fromTimeEntry.grid(row=1, column=1)
-		self.toTimeLabel.grid(row=2, column=0, sticky='e')
-		self.toTimeEntry.grid(row=2, column=1)
-		self.formatLabel.grid(row=3, column=0, columnspan=2, sticky='w')
+		self.formatLabel1.grid(row=1, column=0, sticky='w')
+		self.formatLabel2.grid(row=1, column=1, sticky='w')
+		self.fromTimeLabel.grid(row=2, column=0, sticky='e')
+		self.fromTimeEntry.grid(row=2, column=1)
+		self.toTimeLabel.grid(row=3, column=0, sticky='e')
+		self.toTimeEntry.grid(row=3, column=1)
 
 		self.table.set(0,0,"Name")
 		self.table.set(0,1,"Zeit")
