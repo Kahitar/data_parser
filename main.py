@@ -6,6 +6,7 @@ import dataLoggerParser
 import progressBar
 import tkTable
 import utility
+import matplotlib.pyplot as plt
 
 def main():
 	root = tk.Tk()
@@ -67,7 +68,7 @@ class Application(tk.Frame):
 		self.timeRangeFrame = tk.Frame(self.timesFrame)
 		self.table = tkTable.TkTable(self.timesFrame)
 
-		self.ZeitenButton.grid(row=5, column=5, padx=5, sticky='w')
+		self.ZeitenButton.grid(row=5, column=0, padx=5, sticky='w')
 		self.timeRangeFrame.grid(row=6, column=0, rowspan=2, sticky='n')
 		self.table.grid(row=6, column=5, pady=5, padx=5)
 
@@ -196,7 +197,9 @@ class Application(tk.Frame):
 		try:
 			self.calculateTimes()
 		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst Daten einlesen!")
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+		except KeyError:
+			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
 		except Exception as e:
 			raise e
 		else:
@@ -285,7 +288,8 @@ class Application(tk.Frame):
 		self.loadBar.update(1, 1, msg="(Idle)")
 	
 	def evaluateExpression(self, expression):
-		""" {"columnData": 1, "operator": ">", "comparator": 0.1} """
+		""" 
+		:param expression: {"columnData": 1, "operator": ">", "comparator": 0.1} """
 
 		d = expression
 		d["columnData"] = float(d["columnData"])
