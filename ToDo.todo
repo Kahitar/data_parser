@@ -1,5 +1,5 @@
 Backend improvements:
- ☐ Check if data was changed before trying to save data
+☐ Check if data was changed before trying to save data
   For example with a "dataChanged" variable
 ☐ A looooooot of code refactoring
   ☐ refactor classes according to some design patterns
@@ -18,7 +18,8 @@ User experience:
  ☐ Connect conditions with logical operators ("and", "or")
  ✔ Write an update function for the data Configurator window to update when changes are made @done(18-10-31 15:47)
  ☐ Give a weight and sticky to all widgets
- ☐ Zeiten Definition speichern und laden unabhängig von daten
+ ✔ Zeiten Definition speichern und laden unabhängig von daten @done(18-11-21 13:32)
+    Implemented as "export" and "import" of config data
  ☐ Add the unit to the dataConfigurator refresh function
  
  Bugs:
