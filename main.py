@@ -266,6 +266,8 @@ class Application(tk.Frame):
 		
 		# evaluate data
 		for i in range(data_len):
+			# write progress bar
+			self.loadBar.update(i, data_len, msg="(Calculating)")
 
 			# continue if timestamp i is outside the defined time range
 			try:
@@ -315,9 +317,6 @@ class Application(tk.Frame):
 				if conditionsSatisfied:
 					self.times[timeDef]["occurence"].append(i+1)
 					self.times[timeDef]["sum"] += 1
-
-			# write progress bar
-			self.loadBar.update(i, data_len, msg="(Calculating)")
 
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")
