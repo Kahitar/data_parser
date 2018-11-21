@@ -20,7 +20,7 @@ class Application(tk.Frame):
 		super().__init__(master)
 
 		self.grid()
-		self.master.minsize(500,500)
+		self.master.minsize(500,450)
 		self.master.title("Data logger")
 
 		self.createGui()
@@ -74,11 +74,11 @@ class Application(tk.Frame):
 
 		self.timeRangeLabel = tk.Label(self.timeRangeFrame, text="Berechnungszeitraum")
 		self.formatLabel1 = tk.Label(self.timeRangeFrame, text="Format: ")
-		self.formatLabel2 = tk.Label(self.timeRangeFrame, text="YYYY-MM-DD")
+		self.formatLabel2 = tk.Label(self.timeRangeFrame, width=15, text="YYYY-MM-DD", justify="center")
 		self.fromTimeLabel = tk.Label(self.timeRangeFrame, text="Von: ")
-		self.fromTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
+		self.fromTimeEntry = tk.Entry(self.timeRangeFrame, width=15, justify="center")
 		self.toTimeLabel = tk.Label(self.timeRangeFrame, text="Bis: ")
-		self.toTimeEntry = tk.Entry(self.timeRangeFrame, width=15)
+		self.toTimeEntry = tk.Entry(self.timeRangeFrame, width=15, justify="center")
 
 		self.timeRangeLabel.grid(row=0, column=0, columnspan=2, sticky='w')
 		self.formatLabel1.grid(row=1, column=0, sticky='w')
@@ -261,8 +261,7 @@ class Application(tk.Frame):
 
 			# continue if timestamp i is outside the defined time range
 			try:
-				timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i], "%d.%m.%Y %H:%M:%S,000")
-				print(f"{timeStart}, {timeEnd}, {timestamp}")
+				timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i][:-4], "%d.%m.%Y %H:%M:%S")
 				if not utility.time_in_range(timeStart, timeEnd, timestamp):
 					continue
 			except KeyError:
