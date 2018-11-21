@@ -145,14 +145,12 @@ class Parser(tk.Frame):
 
 		# open the file dialog
 		selectedFile = filedialog.askopenfilename(initialdir=initialDir, title="Select file",
-                                            	  filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
+                                            	  filetypes=(("txt files", "*.txt"), ("all files", "*.*")), parent=self)
 		# check if a file was read in
 		if selectedFile == '':  # file dialog was canceled
 			return
 		else:
 			self.loggerFile = selectedFile
-
-		self.focus_force()
 
 		# find the substring indicating the filename without the path
 		label = utility.getFilenameSubstr(self.loggerFile)
@@ -176,9 +174,8 @@ class Parser(tk.Frame):
 			self.jsonFileLabel['text'] = utility.getFilenameSubstr(outFile)
 		except Exception as e:
 			messagebox.showinfo(
-				"Error", "Bitte zuerst eine Datei zum Parsen auswählen.")
-			self.focus_force()
-			raise e
+				"Error", "Bitte zuerst eine Datei zum Parsen auswählen.", parent=self)
+			print(e)
 
 		self.setToLoad = tk.Button(self.parserFrame, text="|-> Zur Datenverarbeitung laden",
                              command=lambda: self.passToMainApp(outFile))
