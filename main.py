@@ -235,6 +235,17 @@ class Application(tk.Frame):
 
 	@utility.timeit
 	def calculateTimes(self):
+		from datetime import datetime
+		t1 = self.fromTimeEntry.get()
+		t2 = self.toTimeEntry.get()
+		try:
+			if t1 != "":
+				timeStart = datetime.strptime(t1, '%Y-%m-%d')
+			if t2 != "":
+				timeEnd = datetime.strptime(t2, '%Y-%m-%d')
+		except ValueError:
+			messagebox.showinfo("ERROR", "Invalid time format")
+			return
 
 		try:
 			self.times = {name: {"occurence": [], "sum": 0} for name,_ in dataCache.dataDict["TimeDefinitions"].items()}
@@ -245,6 +256,12 @@ class Application(tk.Frame):
 		
 		# evaluate data
 		for i in range(len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"])):
+
+			# continue if timestamp i is outside the defined time range
+			timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i], "%d.%m.%Y %H:%M:%S,000")
+			print(f"{timeStart}, {timeEnd}, {timestamp}")
+			if not utility.time_in_range(timeStart, timeEnd, timestamp):
+				continue
 
 			# iterate through the time definitions
 			for timeDef, conditions in dataCache.dataDict["TimeDefinitions"].items():

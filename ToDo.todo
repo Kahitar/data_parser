@@ -9,8 +9,9 @@ Backend improvements:
 
 User experience:
   ☐ Include the time of the data
-    ☐ Add time to dataDict.data
-    ☐ Let user enter dates for time calculation
+    ✔ Add time to dataDict @done(18-11-21 16:50)
+      The time is added to the dataDict on level 0 in a "timeStamps" list
+    ☐ Evaluate user entered dates for time calculation
   ☐ Ladebalken und Status in extra Statusleiste
   ☐ Make the loading bar move when not idle and unknown progress
   ☐ Connect conditions with logical operators ("and", "or")
