@@ -1,6 +1,10 @@
 import json
 from tkinter import messagebox
 import utility
+import tkinter as tk
+
+class RawDataParserGui(tk.Frame):
+	pass
 
 class RawDataParser:
     pass
@@ -72,13 +76,11 @@ class Parser(tk.Frame):
 		self.parserFrame = tk.LabelFrame(master=self, text="Daten einlesen", borderwidth=1,
                                    relief="sunken", width=500, height=300, padx=5, pady=5)
 		self.parserFrame.grid(column=0, row=10)
-		self.parserFrame.grid_propagate(False)
 
 		self.statusFrame = tk.Frame(master=self, borderwidth=1, padx=5, pady=5)
 		self.statusFrame.grid(column=0, row=5)
 
-		self.previewFrame = tk.Frame(
-			master=self.parserFrame, borderwidth=1, padx=5, pady=5)
+		self.previewFrame = tk.Frame(master=self.parserFrame, borderwidth=1, padx=5, pady=5)
 		self.previewFrame.grid(column=10, row=2)
 
 		""" Loading bar """
@@ -95,7 +97,7 @@ class Parser(tk.Frame):
 
 		self.parseLoggerFileButton = tk.Button(self.parserFrame, text="Rohdaten parsen",
                                          command=self.parseLoggerFile)
-		self.parseLoggerFileButton.grid(row=5, column=5, sticky="ew")
+		self.parseLoggerFileButton.grid(row=2, column=5, sticky="new")
 
 		self.jsonFileLabel = tk.Label(
 			self.parserFrame, text="", borderwidth=0, width=40)
@@ -104,37 +106,38 @@ class Parser(tk.Frame):
 	def loadFilePreview(self):
 		self.loadPreviewValues()
 
-		""" preview selection """
+		# info text
 		tk.Label(self.previewFrame, text="Bitte die Spalten zum Parsen auwählen:", fg="red", borderwidth=0
            ).grid(row=1, column=1, columnspan=6, sticky="w", padx=3)
 
-		# preview Zeiten
-		for i in range(3):
-			tk.Label(self.previewFrame, text=str(i+1) + ".", borderwidth=0, width=3
-            ).grid(row=5+i, column=1, sticky="ew")
-		ttk.Label(self.previewFrame, text="...", borderwidth=0, width=3
-            ).grid(row=8, column=4, sticky="e")
-
-		# preview checkbuttons and values
+		# preview checkbuttons and headline
 		self.columnSelectionVars = []
 		for i in range(6):
 			self.columnSelectionVars.append(tk.IntVar())
-			tk.Checkbutton(self.previewFrame, text="", variable=self.columnSelectionVars[i],
-                            onvalue=1, offvalue=0
-                  ).grid(row=3, column=i+2)
+			tk.Checkbutton(
+				self.previewFrame, 
+				text="", 
+				variable=self.columnSelectionVars[i],
+                onvalue=1, 
+				offvalue=0
+            ).grid(row=3, column=i+2)
 
-			tk.Label(self.previewFrame, text="U_" + str(i), borderwidth=0
-            ).grid(row=4, column=i+2, sticky="ew", padx=3)
+			tk.Label(self.previewFrame, text="U_" + str(i), borderwidth=0).grid(row=4, column=i+2, sticky="ew", padx=3)
 
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][0]) + " V",
-                            borderwidth=0, width=7
-            ).grid(row=5, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][1]) + " V",
-                            borderwidth=0, width=7
-            ).grid(row=6, column=i+2, sticky="ew")
-			tk.Label(self.previewFrame, text=str(self.U_preview[i][2]) + " V",
-                            borderwidth=0, width=7
-            ).grid(row=7, column=i+2, sticky="ew")
+		# preview values
+		i = 0
+		for date, data in self.U_preview.items():
+			tk.Label(self.previewFrame, text=date[-13:-4], borderwidth=0, width=8).grid(row=5+i, column=1, sticky="ew")
+			for j in range(len(data)):
+				tk.Label(
+					self.previewFrame,
+					text=str(data[j]) + " V",
+					borderwidth=0,
+					width=7
+				).grid(row=5+i, column=2+j, sticky="ew")
+			i += 1
+		tk.Label(self.previewFrame, text="...", borderwidth=0, width=3).grid(row=5+i, column=4, sticky="e")
+		
 
 	def loadLoggerFile(self):
 		import os
@@ -190,28 +193,27 @@ class Parser(tk.Frame):
 	def loadPreviewValues(self):
 		""" Loads the first three rows of the selected file"""
 
-		self.U_preview = [[] for x in range(6)]
+		self.U_preview = dict()
 		self.t_preview = []
 
 		with open(self.loggerFile, 'r') as file_obj:
-			for progress, line in enumerate(file_obj):
+			for i, line in enumerate(file_obj):
 
 				if line[0] == ";":
 					continue
-				if progress > 20:
+				if i > 20:
 					break
 
 				newU = [None for x in range(6)]
 				try:
-					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+					_date, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
 				except ValueError as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte sicherstellen, dass die richtige Datei ausgewählt wurde!\n\nDieser Fehler kann insbesondere auftreten, wenn eine von diesem Programm als Output generierte Datei versucht wird zu parsen.")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					raise e
 
-				for i in range(6):
-					self.U_preview[i].append(newU[i])
+				self.U_preview[_date] = newU
 
 	def read_datalogger(self, inFile, outFile):
 
@@ -219,7 +221,7 @@ class Parser(tk.Frame):
 		# columns to parse are 1, the others 0
 		parseColumns = [a.get() for a in self.columnSelectionVars]
 		U = {"DataColumns": dict(), "TimeDefinitions": dict()}
-		U["DataColumns"] = {"Spalte"+str(i): {"data": [], "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
+		U["DataColumns"] = {"Spalte"+str(i): {"data": dict(), "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
 							for i in range(sum(parseColumns))}  # dictionary to store
 
 		# open input file and parse it
@@ -231,18 +233,18 @@ class Parser(tk.Frame):
 
 				newU = [None for x in range(6)]
 				try:
-					_, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
+					_date, _, newU[0], newU[1], newU[2], newU[3], newU[4], newU[5] = line.replace("\n", "").split("	")
 				except ValueError as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte sicherstellen, dass die richtige Datei ausgewählt wurde!\n\nDieser Fehler kann insbesondere auftreten, wenn eine von diesem Programm als Output generierte Datei versucht wird zu parsen.")
 				except Exception as e:
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					raise e
 
-				i = 0
+				col = 0
 				for k, val in enumerate(newU):
 					if parseColumns[k] == 1:
-						U["DataColumns"]["Spalte"+str(i)]["data"].append(val.replace(",", "."))
-						i += 1
+						U["DataColumns"]["Spalte"+str(col)]["data"][_date] = val.replace(",", ".")
+						col += 1
 
 				# update progress bar
 				self.loadBar.update(progress, num_lines, msg="(Parsing Data)")
