@@ -28,7 +28,10 @@ def getFilenameSubstr(filename):
 	""" find the substring indicating the filename without the path
 	counter to count the chars of the new directory or file """
 
-	return filename.split("/")[-1]
+	if '/' in filename:
+		return filename.split("/")[-1]
+	elif '\\' in filename:
+		return filename.split("\\")[-1]
 
 def file_len(fname):
 	""" returns the length (number of lines) of a file """
