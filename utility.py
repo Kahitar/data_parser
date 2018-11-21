@@ -41,9 +41,16 @@ def file_len(fname):
 			pass
 	return i + 1
 
-def time_in_range(start, end, x):
-    """Return true if x is in the range [start, end]"""
-    if start <= end:
-        return start <= x <= end
-    else:
-        return start <= x or x <= end
+def time_in_range(start, end, t):
+	"""Return true if t is in the range [start, end]"""
+	if start != None and end != None:
+		if start <= end:
+			return start <= t <= end
+		else:
+			return start <= t or t <= end
+	elif end != None:
+		return t <= end
+	elif start != None:
+		return start <= t
+	else:
+		return True

@@ -196,10 +196,12 @@ class Application(tk.Frame):
 		""" Refreshes the time-table (or renders it). Function run through button """
 		try:
 			self.calculateTimes()
-		except AttributeError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
-		except KeyError:
-			messagebox.showinfo("Error", "Bitte zuerst eine Datei öffnen!")
+		except AttributeError as e:
+			messagebox.showinfo("Error", "Keine Datei im korrekten Format geöffnet.")
+			print(e)
+		except KeyError as e:
+			messagebox.showinfo("Error", "Keine Datei im korrekten Format geöffnet.")
+			print(e)
 		except Exception as e:
 			raise e
 		else:
@@ -239,12 +241,12 @@ class Application(tk.Frame):
 		t1 = self.fromTimeEntry.get()
 		t2 = self.toTimeEntry.get()
 		try:
-			if t1 != "":
-				timeStart = datetime.strptime(t1, '%Y-%m-%d')
-			if t2 != "":
-				timeEnd = datetime.strptime(t2, '%Y-%m-%d')
+			if t1 != "": timeStart = datetime.strptime(t1, '%Y-%m-%d')
+			else: timeStart = None
+			if t2 != "": timeEnd = datetime.strptime(t2, '%Y-%m-%d')
+			else: timeEnd = None
 		except ValueError:
-			messagebox.showinfo("ERROR", "Invalid time format")
+			messagebox.showinfo("FEHLER", "Das eingegebene Datum hat das falsche Format.")
 			return
 
 		try:
@@ -258,10 +260,19 @@ class Application(tk.Frame):
 		for i in range(len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"])):
 
 			# continue if timestamp i is outside the defined time range
-			timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i], "%d.%m.%Y %H:%M:%S,000")
-			print(f"{timeStart}, {timeEnd}, {timestamp}")
-			if not utility.time_in_range(timeStart, timeEnd, timestamp):
-				continue
+			try:
+				timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i], "%d.%m.%Y %H:%M:%S,000")
+				print(f"{timeStart}, {timeEnd}, {timestamp}")
+				if not utility.time_in_range(timeStart, timeEnd, timestamp):
+					continue
+			except KeyError:
+				if (t1 != "" or t2 != "") and i == 0:
+					messagebox.showinfo("Warnung: Keine Zeitinformationen.",
+										"Die geladene .json-Datei enthält keine Zeitinformationen.\n"+\
+										"Der angegebene Zeitbereich wird ignoriert.\n\n"+\
+										"Dieser Fehler tritt auf, wenn die .json-Datei\n"+\
+										"mit einer früheren Version dieses Programms erstellt wurde.\n"
+										"Um Zeitinformationen zu erhalten, muss die entsprechende Rohdatei neu geparst werden.")
 
 			# iterate through the time definitions
 			for timeDef, conditions in dataCache.dataDict["TimeDefinitions"].items():
