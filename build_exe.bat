@@ -1,0 +1,1 @@
+pyinstaller main.py --noconsole --onefile --icon=chart.ico --name "Daten Logger Auswerter"

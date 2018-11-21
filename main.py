@@ -6,7 +6,7 @@ import dataLoggerParser
 import progressBar
 import tkTable
 import utility
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def main():
 	root = tk.Tk()
