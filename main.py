@@ -219,7 +219,7 @@ class Application(tk.Frame):
 			i = 0
 			for key, value in self.times.items():
 				self.table.set(i+1,0,key)
-				self.table.set(i+1,1,"{:.3} h".format(value["sum"]/60/60))
+				self.table.set(i+1,1,"{:.3f} h".format(value["sum"]/60/60))
 				i += 1
 		except AttributeError:
 			# Times not calculated yet
@@ -255,9 +255,17 @@ class Application(tk.Frame):
 			dataCache.dataDict["TimeDefinitions"] = dict()
 			self.calculateTimes()
 			return
+
+		data_len = len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"])
+		if data_len > 100000:
+			messagebox.showinfo("Hinweis: Lange Berechnungszeit", 
+								"Diese Datei hat sehr viele Daten. Das Berechnen der Zeiten kann daher sehr lange dauern\n"+\
+								"Auch wenn das Fenster \"Keine Rückmeldung\" anzeigt und/oder einfriert, "+\
+								"läuft die Berechnung im Hintergrund weiter.\n"+\
+								"Das Programm wird wieder reagieren, sobald die Berechnung abgeschlossen ist.")
 		
 		# evaluate data
-		for i in range(len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"])):
+		for i in range(data_len):
 
 			# continue if timestamp i is outside the defined time range
 			try:
@@ -309,7 +317,7 @@ class Application(tk.Frame):
 					self.times[timeDef]["sum"] += 1
 
 			# write progress bar
-			self.loadBar.update(i, len(dataCache.dataDict["DataColumns"]["Spalte0"]["data"]), msg="(Calculating)")
+			self.loadBar.update(i, data_len, msg="(Calculating)")
 
 		# loop finished, fill progress bar
 		self.loadBar.update(1, 1, msg="(Idle)")

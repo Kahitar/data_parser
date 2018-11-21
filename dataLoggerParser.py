@@ -218,12 +218,19 @@ class Parser(tk.Frame):
 
 	def read_datalogger(self, inFile, outFile):
 
-		num_lines = utility.file_len(inFile)
 		# columns to parse are 1, the others 0
 		parseColumns = [a.get() for a in self.columnSelectionVars]
 		U = {"TimeStamps": list(), "DataColumns": dict(), "TimeDefinitions": dict()}
 		U["DataColumns"] = {"Spalte"+str(i): {"data": list(), "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
 							for i in range(sum(parseColumns))}  # dictionary to store
+
+		num_lines = utility.file_len(inFile)
+		if num_lines > 100000:
+			messagebox.showinfo("Hinweis: Große Datei", 
+								"Diese Datei ist sehr groß, wodurch das Parsen einige Minuten dauern kann\n"+\
+								"Auch wenn das Fenster \"Keine Rückmeldung\" anzeigt und/oder einfriert, "+\
+								"läuft das Parsen im Hintergrund weiter.\n"+\
+								"Das Programm wird wieder reagieren, sobald die Aktion abgeschlossen ist.")
 
 		# open input file and parse it
 		with open(inFile, "r") as file_obj:
