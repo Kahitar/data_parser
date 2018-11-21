@@ -70,9 +70,9 @@ class TimeDefinition(tk.Frame):
 	def refreshConditions(self, dataColumnDefinitions):
 		# refresh option menu options
 		dataColumnNames = tuple(col["name"] for col in dataColumnDefinitions)
-		for key, condition in self.conditions.items():
+		for _key, condition in self.conditions.items():
 			condition['columnMenu']['menu'].delete(0, 'end')
-			for idx, dataColumnName in enumerate(dataColumnNames):
+			for _idx, dataColumnName in enumerate(dataColumnNames):
 				condition['columnMenu']['menu'].add_command(label=dataColumnName,
 															command=tk._setit(condition['column'], dataColumnName))
 
@@ -262,6 +262,8 @@ class DataConfigurator(tk.Frame):
 		self.menubar = tk.Menu(self)
 
 		self.filemenu = tk.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label="Daten exportieren", command=self.exportConfigData)
+		self.filemenu.add_command(label="Daten importieren", command=self.importConfigData)
 		self.filemenu.add_command(label="Beenden", command=self.close)
 
 		self.master.config(menu=self.menubar)
@@ -276,6 +278,9 @@ class DataConfigurator(tk.Frame):
 		self.constructDataConversionGui()
 
 		""" Time calculations frame """
+		self.constructTimeCalculationFrame()
+
+	def constructTimeCalculationFrame(self):
 		self.timesCalculationFrame = TimesCalculationFrame(master=self, text="Zeitenberechnung konfigurieren", borderwidth=1,
                                         relief="sunken", width=500, height=400, padx=5, pady=15)
 		self.timesCalculationFrame.grid(row=10, column=1, sticky="NW")
@@ -326,6 +331,68 @@ class DataConfigurator(tk.Frame):
 		self.safeConfigData()
 		self.master.destroy()
 		self.mainApp.dataConfigurator = None
+
+	def exportConfigData(self):
+		data = {"DataColumns": dict(), "TimeDefinitions": self.timesCalculationFrame.getTimeDefinitions()}
+		i = 0
+		for _key, _value in dataCache.dataDict["DataColumns"].items():
+			# safe conversion data
+			data["DataColumns"]['Spalte'+str(i)] = dict()
+			data["DataColumns"]['Spalte'+str(i)]["convFunc"] = self.dataConfiguratorRows[i].getConversionFunctionParams()
+			data["DataColumns"]['Spalte'+str(i)]["name"] = self.dataConfiguratorRows[i].nameField.get()
+			data["DataColumns"]['Spalte'+str(i)]["Unit"] = self.dataConfiguratorRows[i].Unit_y1.get()
+			i += 1
+
+		fileObj = filedialog.asksaveasfile(
+									title="Select a folder",
+									defaultextension='.json',
+									filetypes=(("json files", "*.json"), ("all files", "*.*")), 
+									parent=self
+								)
+		filename = fileObj.name
+		fileObj.close()
+
+		# save the data to the file
+		from dataLoggerParser import JSONParser
+		JSONParser.writeJSONFile(filename, data)
+
+	def importConfigData(self):
+		# TODO: Implement warning, that current config data will be overriden
+
+		# open the file dialog
+		filename = filedialog.askopenfilename(
+									title="Select file",
+									filetypes=(("jsonX files", "*.json"), ("all files", "*.*")), 
+									parent=self
+								)
+
+		# load json from file
+		from dataLoggerParser import JSONParser
+		data = JSONParser.loadJSONFile(filename)
+
+		# override the current dataCache config data with the imported config data
+		# The actual (voltage) data is not changed by this
+		try:
+			for column, value in dataCache.dataDict["DataColumns"].items():
+				# safe conversion data
+				value["convFunc"] = data['DataColumns'][column]['convFunc']
+				value["name"] = data['DataColumns'][column]['name']
+				value["Unit"] = data['DataColumns'][column]['Unit']
+		except KeyError:
+			# If the config data doesn't have all the rows, just leave the additional rows unchanged
+			print("The imported config data has less rows than that of the currently loaded file.")
+
+		# safe time definition data
+		dataCache.dataDict["TimeDefinitions"] = data['TimeDefinitions']
+
+		# remove the old frames
+		for row in self.dataConfiguratorRows:
+			row.grid_forget()
+		self.timesCalculationFrame.grid_forget()
+		
+		# reconstruct the frames
+		self.constructDataConversionGui()
+		self.constructTimeCalculationFrame()
 
 	def safeConfigData(self):
 		i = 0

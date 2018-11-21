@@ -54,7 +54,7 @@ class Application(tk.Frame):
 		""" Data Frame """
 		self.openFileButton = tk.Button(self.dataFrame, text="Datei öffnen", command=self.loadFile)
 		self.fileLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
-		self.configDataButton = tk.Button(self.dataFrame, text="Daten auswählen", command=self.initDataConfigurator)
+		self.configDataButton = tk.Button(self.dataFrame, text="Spalten und Zeiten", command=self.initDataConfigurator)
 		self.configDataLabel = tk.Label(self.dataFrame, text="", borderwidth=0, width=40)
 
 		self.openFileButton.grid(row=3, column=5, sticky="ew")
@@ -159,7 +159,7 @@ class Application(tk.Frame):
 
 		# open the file dialog
 		selectedFile = filedialog.askopenfilename(initialdir=utility.FILES_LOCATION, title="Select file", 
-													filetypes=(("json files","*.json"),))
+													filetypes=(("json files","*.json"),), parent=self)
 		# check if a file was read in
 		if selectedFile == '': # file dialog was canceled
 			return
@@ -170,7 +170,7 @@ class Application(tk.Frame):
 		""" loads a new file into memory """
 
 		# load the data
-		self.loadBar.update(1, 1, msg="(Loading new File)")
+		self.loadBar.update(1, 1, msg="(Saving current File)")
 		dataCache.loadDataFromFile(file, deleteOldData)
 		self.loadBar.update(1, 1, msg="(Idle)")
 
@@ -267,7 +267,7 @@ class Application(tk.Frame):
 								comparator = float(condition["comparator"])
 							except ValueError:
 								comparator = 0.0
-								condition["comparator"] = 0.0 # TODO: give a warning instead
+								condition["comparator"] = 0.0
 
 							# construct expression
 							expression = {"columnData": dataPoint, "operator": operator, "comparator": comparator}
