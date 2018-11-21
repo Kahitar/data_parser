@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+import datetime
 import dataCache
 import dataConfigurator
 import dataLoggerParser
@@ -237,14 +238,14 @@ class Application(tk.Frame):
 
 	@utility.timeit
 	def calculateTimes(self):
-		from datetime import datetime
 		t1 = self.fromTimeEntry.get()
 		t2 = self.toTimeEntry.get()
 		try:
-			if t1 != "": timeStart = datetime.strptime(t1, '%Y-%m-%d')
+			if t1 != "": timeStart = datetime.datetime.strptime(t1, '%Y-%m-%d')
 			else: timeStart = None
-			if t2 != "": timeEnd = datetime.strptime(t2, '%Y-%m-%d')
+			if t2 != "": timeEnd = datetime.datetime.strptime(t2, '%Y-%m-%d') + datetime.timedelta(days=1)
 			else: timeEnd = None
+			print(t2)
 		except ValueError:
 			messagebox.showinfo("FEHLER", "Das eingegebene Datum hat das falsche Format.")
 			return
@@ -271,7 +272,7 @@ class Application(tk.Frame):
 
 			# continue if timestamp i is outside the defined time range
 			try:
-				timestamp = datetime.strptime(dataCache.dataDict["TimeStamps"][i][:-4], "%d.%m.%Y %H:%M:%S")
+				timestamp = datetime.datetime.strptime(dataCache.dataDict["TimeStamps"][i][:-4], "%d.%m.%Y %H:%M:%S")
 				if not utility.time_in_range(timeStart, timeEnd, timestamp):
 					continue
 			except KeyError:
