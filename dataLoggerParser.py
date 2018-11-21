@@ -187,6 +187,7 @@ class Parser(tk.Frame):
 		         fg="red").grid(row=21, column=10, sticky="ew")
 
 	def passToMainApp(self, outFile):
+		# TODO: Make sure the parsed file isn't the same as the currently loaded file
 		self.mainApp.setFileToLoad(outFile, False)
 		self.close()
 
@@ -220,8 +221,8 @@ class Parser(tk.Frame):
 		num_lines = utility.file_len(inFile)
 		# columns to parse are 1, the others 0
 		parseColumns = [a.get() for a in self.columnSelectionVars]
-		U = {"DataColumns": dict(), "TimeDefinitions": dict()}
-		U["DataColumns"] = {"Spalte"+str(i): {"data": dict(), "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
+		U = {"TimeStamps": list(), "DataColumns": dict(), "TimeDefinitions": dict()}
+		U["DataColumns"] = {"Spalte"+str(i): {"data": list(), "Unit": "V", "convFunc": {"x1": 0, "x2": 1, "y1": 0, "y2": 1}} 
 							for i in range(sum(parseColumns))}  # dictionary to store
 
 		# open input file and parse it
@@ -240,10 +241,12 @@ class Parser(tk.Frame):
 					messagebox.showinfo("Error", "Beim Parsen der Datei ist ein Fehler aufgetreten.\nBitte die Datei auf fehlerhafte Zeilen überprüfen.\n\nIn jeder Zeile müssen 8 mit Tabstopp getrennte Werte stehen.\n(Mit ';' beginnende Zeilen werden ignoriert.)")
 					raise e
 
+				U["TimeStamps"].append(_date)
+
 				col = 0
 				for k, val in enumerate(newU):
 					if parseColumns[k] == 1:
-						U["DataColumns"]["Spalte"+str(col)]["data"][_date] = val.replace(",", ".")
+						U["DataColumns"]["Spalte"+str(col)]["data"].append(val.replace(",", "."))
 						col += 1
 
 				# update progress bar
